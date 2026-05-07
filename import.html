@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EdTechra Live Quiz - Import Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="flex-center">
+    <div class="aurora"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="glass-card" style="width: min(800px, 95%); padding: 32px;">
+        <h1 style="margin: 0 0 8px;">🚀 Quiz Importer</h1>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Paste your quiz in EQM format (* marks correct
+            answer). AI will parse it automatically.</p>
+
+        <div class="stack" style="gap: 20px;">
+            <textarea id="quizInput" class="modern-input"
+                style="height: 350px; font-family: monospace; font-size: 14px;resize: vertical;"
+                placeholder="TITLE: My Awesome Quiz&#10;Q: What is the capital of France?&#10;A: Paris*&#10;A: London&#10;A: Berlin&#10;A: Madrid"></textarea>
+
+            <div id="status" style="font-weight: 600; min-height: 24px;"></div>
+
+            <button id="importBtn" class="btn-primary">Build Quiz Engine</button>
+
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 10px;">
+                <span style="color: var(--text-muted); font-size: 14px;">Example format (EQM):</span>
+                <code
+                    style="background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; font-size: 12px;">Q: Question? A: Answer* A: Wrong...</code>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="import.js"></script>
+</body>
+
+</html>

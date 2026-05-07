@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EdTechra Live Quiz Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .arena-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .passage-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4rem;
+            line-height: 1.6;
+            text-align: left;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            user-select: none;
+            position: relative;
+            max-height: 200px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .passage-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .passage-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .passage-box::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .passage-box::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .passage-box span {
+            position: relative;
+        }
+
+        .char-correct {
+            color: var(--accent-success);
+        }
+
+        .char-error {
+            color: var(--accent-error);
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .char-current {
+            border-bottom: 3px solid var(--accent-secondary);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        .typing-area {
+            width: 100%;
+            height: 120px;
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            font-size: 1.2rem;
+            outline: none;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+
+        .typing-area:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        .lock-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            z-index: 10;
+            border-radius: 16px;
+            backdrop-filter: blur(4px);
+            display: none;
+        }
+
+        /* Mobile Block Overlay */
+        .mobile-block {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: var(--bg-deep);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            gap: 20px;
+        }
+
+        .mobile-block.active {
+            display: flex;
+        }
+
+        .mobile-block .block-icon {
+            font-size: 5rem;
+            margin-bottom: 10px;
+        }
+
+        .mobile-block h1 {
+            font-size: 2rem;
+            margin: 0;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mobile-block p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="aurora"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- Mobile Block Overlay -->
+    <div id="mobileBlock" class="mobile-block">
+        <div class="block-icon">💻</div>
+        <h1>Desktop Only</h1>
+        <p>This typing competition requires a physical keyboard. Please join from a PC or laptop.</p>
+        <p style="font-size: 0.85rem; opacity: 0.5;">Mobile devices and tablets are not supported.</p>
+    </div>
+
+    <!-- JOIN VIEW -->
+    <div id="view-join" class="glass-card arena-container">
+        <h1>Enter the Arena</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Ready to show your speed?</p>
+        <div class="stack" style="gap: 16px;">
+            <input id="playerName" class="modern-input" placeholder="Your Name" maxlength="15">
+            <input id="pinInput" class="modern-input" placeholder="Enter PIN (if no URL sid)">
+            <button id="joinBtn" class="btn-primary" style="width: 100%;">Join Battle</button>
+        </div>
+    </div>
+
+    <!-- WAITING VIEW -->
+    <div id="view-waiting" class="glass-card arena-container" style="display: none;">
+        <h2 class="animate-pulse">Waiting for Host...</h2>
+        <p id="waitingName" style="font-size: 1.5rem; margin: 20px 0; color: var(--accent-secondary);"></p>
+        <div class="passage-box" style="opacity: 0.5; font-size: 1rem;">
+            Get ready to type. The passage will appear here when the game starts.
+        </div>
+    </div>
+
+    <!-- GAME VIEW -->
+    <div id="view-game" class="glass-card arena-container" style="display: none;">
+        <div class="meta-bar">
+            <div id="timerDisplay">Timer: --s</div>
+            <div id="progressDisplay">Progress: 0%</div>
+        </div>
+
+        <div class="passage-box" id="passageDisplay">
+            <!-- Passage chars -->
+        </div>
+
+        <div style="position: relative;">
+            <div id="lockOverlay" class="lock-overlay">FINISHED</div>
+            <textarea id="typingArea" class="typing-area" placeholder="Start typing when the host begins..."
+                autocomplete="off" spellcheck="false"></textarea>
+        </div>
+
+        <div class="stack" style="margin-top: 24px; color: var(--text-muted);">
+            <p>⚠️ Do not switch tabs. ⚠️ Paste is disabled.</p>
+        </div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div id="view-results" class="glass-card arena-container" style="display: none;">
+        <h1>Battle Concluded</h1>
+        <div style="margin: 40px 0;">
+            <h2 id="finalScore" style="font-size: 4rem; color: var(--accent-warning);">0</h2>
+            <p>Final Score</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="glass-card" style="padding: 20px;">
+                <h3 id="finalWpm">0</h3>
+                <p>WPM</p>
+            </div>
+            <div class="glass-card" style="padding: 20px;">
+                <h3 id="finalAccuracy">0%</h3>
+                <p>Accuracy</p>
+            </div>
+        </div>
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 40px;">Play Again</button>
+    </div>
+
+    <script type="module" src="type.js"></script>
+</body>
+
+</html>

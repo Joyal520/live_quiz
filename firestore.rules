@@ -1,0 +1,184 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function boardGame(gameId) {
+      return get(/databases/$(database)/documents/liveBoardGames/$(gameId));
+    }
+
+    function isBoardTeacher(gameId) {
+      return signedIn() && request.auth.uid == boardGame(gameId).data.teacherId;
+    }
+
+    function isBoardLobby(gameId) {
+      return boardGame(gameId).data.status == 'lobby';
+    }
+
+    function boardParticipantFields() {
+      return [
+        'uid',
+        'displayName',
+        'avatar',
+        'teamId',
+        'role',
+        'connected',
+        'score',
+        'xp',
+        'correct',
+        'wrong',
+        'readyTurnId',
+        'readyAt',
+        'joinedAtMs',
+        'joinedAt',
+        'updatedAt'
+      ];
+    }
+
+    // Existing MCQ quiz collections.
+    match /quizzes/{quizId} {
+      allow read, create: if true;
+    }
+
+    match /pins/{pin} {
+      allow read, create: if true;
+    }
+
+    match /games/{gameId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.hostUid == request.auth.uid;
+
+      match /players/{playerId} {
+        allow read: if true;
+        allow create: if request.auth.uid == playerId
+                      && request.resource.data.score == 0;
+        allow update: if get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid;
+      }
+
+      match /answers/{answerId} {
+        allow read: if get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid;
+        allow create: if request.auth.uid == request.resource.data.uid;
+        allow update: if false;
+      }
+    }
+
+    // Existing typing competition collections.
+    match /typingPins/{pin} {
+      allow read, create: if true;
+    }
+
+    match /typingSessions/{sid} {
+      allow read: if true;
+      allow create, update: if request.resource.data.hostUid == request.auth.uid;
+
+      match /players/{playerId} {
+        allow read: if true;
+        allow create: if request.auth.uid == playerId;
+        allow update: if request.auth.uid == playerId
+                      || get(/databases/$(database)/documents/typingSessions/$(sid)).data.hostUid == request.auth.uid;
+      }
+    }
+
+    // Live educational board game collections.
+    match /liveBoardGames/{gameId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isBoardTeacher(gameId);
+      allow delete: if false;
+
+      match /participants/{uid} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+                      && isBoardLobby(gameId)
+                      && request.auth.uid == uid
+                      && request.resource.data.keys().hasOnly(boardParticipantFields())
+                      && request.resource.data.uid == uid
+                      && request.resource.data.role == 'player'
+                      && request.resource.data.score == 0
+                      && request.resource.data.xp == 0
+                      && request.resource.data.correct == 0
+                      && request.resource.data.wrong == 0;
+        allow update: if isBoardTeacher(gameId)
+                      || (
+                        signedIn()
+                        && request.auth.uid == uid
+                        && request.resource.data.keys().hasOnly(boardParticipantFields())
+                        && request.resource.data.uid == uid
+                        && (
+                          isBoardLobby(gameId)
+                          || request.resource.data.diff(resource.data).affectedKeys()
+                            .hasOnly(['readyTurnId', 'readyAt', 'connected', 'updatedAt'])
+                        )
+                      );
+        allow delete: if false;
+      }
+
+      match /teams/{teamId} {
+        allow read: if signedIn();
+        allow write: if isBoardTeacher(gameId);
+      }
+
+      match /questions/{questionId} {
+        allow read, write: if isBoardTeacher(gameId);
+      }
+
+      match /answers/{answerId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+                      && request.resource.data.keys().hasOnly([
+                        'uid',
+                        'teamId',
+                        'turnId',
+                        'questionId',
+                        'optionIndex',
+                        'submittedAt'
+                      ])
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.turnId is string
+                      && request.resource.data.teamId is string
+                      && request.resource.data.optionIndex is int;
+        allow update, delete: if false;
+      }
+
+      match /boardState/{stateId} {
+        allow read: if signedIn();
+        allow write: if isBoardTeacher(gameId);
+      }
+
+      match /turnState/{stateId} {
+        allow read: if signedIn();
+        allow write: if isBoardTeacher(gameId);
+      }
+
+      match /results/{resultId} {
+        allow read: if signedIn();
+        allow write: if isBoardTeacher(gameId);
+      }
+    }
+
+    match /gameSessions/{sessionId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.teacherId == request.auth.uid;
+      allow update: if signedIn()
+                    && resource.data.teacherId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /gameHistory/{historyId} {
+      allow read: if signedIn()
+                  && resource.data.teacherId == request.auth.uid;
+      allow create: if signedIn()
+                    && request.resource.data.teacherId == request.auth.uid;
+      allow update: if signedIn()
+                    && resource.data.teacherId == request.auth.uid
+                    && request.resource.data.teacherId == request.auth.uid;
+      allow delete: if false;
+    }
+  }
+}

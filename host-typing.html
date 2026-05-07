@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Live Typing Competition — Host Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .host-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+
+        .game-view {
+            display: none;
+        }
+
+        /* ── Pin & Lobby ── */
+        .pin-display {
+            font-size: 100px;
+            font-weight: 900;
+            color: var(--accent-secondary);
+            text-shadow: var(--shadow-glow);
+            margin: 10px 0;
+            letter-spacing: 8px;
+        }
+
+        .passage-preview {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        /* ═══════════════════════════════════════════
+           RUNNING VIEW — PREMIUM LIVE ARENA
+           ═══════════════════════════════════════════ */
+
+        /* Arena Header */
+        .arena-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(109, 94, 252, 0.15), rgba(34, 211, 238, 0.1));
+            border: 1px solid rgba(109, 94, 252, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arena-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-secondary), transparent);
+            animation: header-shine 3s linear infinite;
+        }
+
+        @keyframes header-shine {
+            to {
+                transform: translateX(50%);
+            }
+        }
+
+        .arena-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .arena-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #a78bfa, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .arena-title .keyboard-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 0 8px rgba(109, 94, 252, 0.5));
+        }
+
+        /* Circular Timer */
+        .circular-timer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+
+        .circular-timer svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 6;
+        }
+
+        .timer-ring {
+            fill: none;
+            stroke: url(#timerGradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-text .time-num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent-warning);
+            line-height: 1;
+        }
+
+        .timer-text .time-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-critical .timer-ring {
+            stroke: var(--accent-error);
+            animation: ring-pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes ring-pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Live Stats Strip */
+        .stats-strip {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            flex: 1;
+            min-width: 130px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-badge:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(109, 94, 252, 0.15);
+        }
+
+        .stat-icon {
+            font-size: 1.4rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.players {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-icon.avg-wpm {
+            background: rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-icon.top-wpm {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .stat-icon.accuracy {
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-info .stat-value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .stat-info .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Race Track */
+        .race-track {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px 24px;
+        }
+
+        .race-track h3 {
+            margin: 0 0 14px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .race-lane {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .race-name {
+            width: 80px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .race-bar-wrap {
+            flex: 1;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 11px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .race-bar {
+            height: 100%;
+            border-radius: 11px;
+            transition: width 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            min-width: 2px;
+        }
+
+        .race-bar::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+            border-radius: 0 11px 11px 0;
+        }
+
+        .race-pct {
+            font-size: 0.75rem;
+            font-weight: 800;
+            width: 40px;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        /* Leaderboard Cards */
+        .lb-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .lb-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: live-blink 1.2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes live-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 6px #ef4444;
+            }
+
+            50% {
+                opacity: 0.3;
+                box-shadow: none;
+            }
+        }
+
+        .live-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 8px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
+        }
+
+        .player-card.top-1 {
+            border-color: rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
+        }
+
+        .player-card.top-2 {
+            border-color: rgba(192, 192, 192, 0.25);
+            background: rgba(192, 192, 192, 0.04);
+        }
+
+        .player-card.top-3 {
+            border-color: rgba(205, 127, 50, 0.25);
+            background: rgba(205, 127, 50, 0.04);
+        }
+
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            color: #000;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: #fff;
+        }
+
+        .rank-badge.normal {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+        }
+
+        .pc-info {
+            flex: 1;
+        }
+
+        .pc-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .pc-stats {
+            display: flex;
+            gap: 14px;
+        }
+
+        .pc-stat {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pc-stat .val {
+            color: var(--text-bright);
+            font-weight: 800;
+        }
+
+        .pc-score {
+            font-size: 1.3rem;
+            font-weight: 900;
+            font-family: 'Plus Jakarta Sans', monospace;
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .pc-score.gold {
+            color: var(--accent-warning);
+        }
+
+        .pc-flags {
+            display: flex;
+            gap: 4px;
+        }
+
+        .flag-chip {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-error);
+            font-weight: 700;
+        }
+
+        /* Passage Preview in Running */
+        .passage-running-wrap {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-height: 70px;
+            overflow-y: auto;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        /* ── Podium & Camera Zoom ── */
+        .podium-spot {
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(100px);
+            opacity: 0;
+            position: relative;
+        }
+
+        .podium-spot.reveal {
+            transform: translateY(0);
+            opacity: 1 !important;
+        }
+
+        #podium-1.reveal {
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+            border: 4px solid var(--accent-warning);
+        }
+
+        .podium-stage {
+            display: flex;
+            align-items: flex-end;
+            gap: 30px;
+            height: 350px;
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center bottom;
+        }
+
+        .podium-stage.zoom-3rd {
+            transform: scale(1.6) translateX(30%);
+        }
+
+        .podium-stage.zoom-2nd {
+            transform: scale(1.6) translateX(-30%);
+        }
+
+        .podium-stage.zoom-1st {
+            transform: scale(1.8) translateX(0);
+        }
+
+        .podium-stage.zoom-out {
+            transform: scale(1) translateX(0);
+        }
+
+        .podium-spot.spotlight {
+            filter: brightness(1.3);
+            z-index: 10;
+        }
+
+        #podium-1.spotlight {
+            animation: winner-pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.6), 0 0 160px rgba(255, 215, 0, 0.3), inset 0 0 40px rgba(255, 215, 0, 0.15);
+        }
+
+        @keyframes winner-pulse {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                filter: brightness(1.3);
+            }
+
+            50% {
+                transform: translateY(-8px) scale(1.05);
+                filter: brightness(1.6);
+            }
+        }
+
+        .winner-fx {
+            font-size: 3.5rem;
+            animation: fx-pulse 1.5s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+        }
+
+        @keyframes fx-pulse {
+            0% { transform: scale(1) translateY(0); filter: hue-rotate(0deg) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+            100% { transform: scale(1.15) translateY(-5px); filter: hue-rotate(15deg) drop-shadow(0 0 25px rgba(255, 170, 0, 0.9)); }
+        }
+
+        /* Fullscreen FAB */
+        .fullscreen-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .fullscreen-fab:hover {
+            transform: scale(1.12);
+            background: rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+
+<body style="padding: 24px;">
+    <div class="aurora"></div>
+    <div class="bg-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- 1. SETUP VIEW -->
+    <div id="view-setup" class="glass-card stack"
+        style="max-width: 700px; margin: 60px auto; padding: 32px; text-align: center;">
+        <h1>Host Typing Competition</h1>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Set the stage for a high-speed typing battle.</p>
+
+        <div class="stack" style="gap: 16px; text-align: left;">
+            <label style="font-weight: 600;">Competition Passage</label>
+            <textarea id="passageInput" class="modern-input" style="height: 150px;"
+                placeholder="Paste the text students should type..."></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="stack" style="gap: 8px;">
+                    <label style="font-weight: 600;">Duration (Seconds)</label>
+                    <input id="durationInput" type="number" class="modern-input" value="60" min="10" max="360">
+                </div>
+                <div class="stack" style="gap: 8px;">
+                    <label style="font-weight: 600;">Presets</label>
+                    <select id="presetSelect" class="modern-input">
+                        <option value="">Custom...</option>
+                        <option value="The quick brown fox jumps over the lazy dog.">Fox Jumps (Easy)</option>
+                        <option
+                            value="Technology is the application of conceptual knowledge for achieving practical goals, especially in a reproducible way.">
+                            Tech Definition (Medium)</option>
+                        <option
+                            value="In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.">
+                            Genesis (Hard)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button id="createBtn" class="btn-primary" style="width: 100%; margin-top: 32px;">Initialize
+            Competition</button>
+    </div>
+
+    <!-- 2. LOBBY VIEW -->
+    <div id="view-lobby" class="game-view host-grid">
+        <div class="glass-card" style="padding: 40px; text-align: center;">
+            <h2 style="margin: 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">Join with
+                PIN:</h2>
+            <div id="lobbyPin" class="pin-display animate-pulse">------</div>
+            <p style="margin-bottom: 20px;">Or share: <br> <code id="shareLink"
+                    style="color: var(--accent-secondary);">type.html?sid=...</code></p>
+
+            <div class="leaderboard-container" style="max-width: 100%;">
+                <h3 id="playerCount">0 Players Joined</h3>
+                <div id="lobbyPlayerList"
+                    style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px;">
+                    <!-- Player names -->
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 40px;">
+                <button id="startBtn" class="btn-primary" style="flex: 1;">Start Competition</button>
+            </div>
+        </div>
+        <div class="glass-card" style="padding: 24px;">
+            <h3>Passage Info</h3>
+            <div id="lobbyPassagePreview" class="passage-preview"></div>
+            <div style="margin-top: 16px; font-size: 14px; color: var(--text-muted);">
+                <p>Chars: <span id="charCount">0</span></p>
+                <p>Duration: <span id="durationDisplay">0</span>s</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. RUNNING VIEW — PREMIUM LIVE ARENA -->
+    <div id="view-running" class="game-view stack" style="gap: 20px;">
+
+        <!-- Arena Header -->
+        <div class="arena-header">
+            <div class="arena-title">
+                <span class="keyboard-icon">⌨️</span>
+                <div>
+                    <h2>LIVE QUIZ CHALLENGE</h2>
+                    <div id="passageRunning" class="passage-running-wrap" style="width: 520px; margin-top: 8px;"></div>
+                </div>
+            </div>
+            <div class="circular-timer" id="circularTimer">
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#ef4444" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="timer-bg" cx="50" cy="50" r="45" />
+                    <circle class="timer-ring" id="timerRing" cx="50" cy="50" r="45" />
+                </svg>
+                <div class="timer-text">
+                    <span class="time-num" id="gameTimer">--</span>
+                    <span class="time-label">sec</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Stats Strip -->
+        <div class="stats-strip">
+            <div class="stat-badge">
+                <div class="stat-icon players">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statPlayers">0</div>
+                    <div class="stat-label">Players</div>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon avg-wpm">⚡</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAvgWpm">0</div>
+                    <div class="stat-label">Avg WPM</div>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon top-wpm">🏆</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statTopWpm">0</div>
+                    <div class="stat-label">Top WPM</div>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon accuracy">🎯</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAvgAcc">100%</div>
+                    <div class="stat-label">Avg Accuracy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Race Track -->
+        <div class="race-track" id="raceTrack">
+            <h3>🏁 TYPING RACE</h3>
+            <div id="raceLanes">
+                <!-- Race lanes injected by JS -->
+            </div>
+        </div>
+
+        <!-- Ranked Leaderboard -->
+        <div class="lb-section">
+            <div class="lb-header">
+                <h3>Final Standings</h3>
+                <div class="live-tag"><span class="live-dot"></span> LIVE SCORING</div>
+            </div>
+            <div id="leaderboardBody">
+                <!-- Player cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. FINISHED VIEW (PODIUM) -->
+    <div id="view-finished" class="game-view flex-center stack"
+        style="height: 100vh; gap: 40px; overflow: hidden; background: radial-gradient(circle at center, rgba(109, 94, 252, 0.2) 0%, transparent 70%);">
+        <h1 id="podiumTitle" class="animate-float"
+            style="font-size: 5rem; text-shadow: 0 0 30px var(--accent-primary); opacity: 0; transition: opacity 0.8s;">
+            &#127942; CHAMPIONS &#127942;
+        </h1>
+
+        <div class="podium-stage" id="podiumStage">
+            <div id="podium-2" class="glass-card flex-center stack podium-spot"
+                style="width: 200px; height: 65%; background: linear-gradient(to top, rgba(192,192,192,0.3), var(--glass));">
+                <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
+                <div class="score" style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 15px;">0 pts
+                </div>
+                <div style="font-size: 3rem; font-weight: 900; opacity: 0.5;">2nd</div>
+            </div>
+
+            <div id="podium-1" class="glass-card flex-center stack podium-spot"
+                style="width: 250px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.3), var(--glass));">
+                <div class="winner-fx" style="display: none;">✨🏆✨</div>
+                <div class="name" style="font-weight: 800; font-size: 2rem; color: var(--accent-warning);">--</div>
+                <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 15px;">0
+                    pts</div>
+                <div style="font-size: 4.5rem; font-weight: 900;">1st</div>
+            </div>
+
+            <div id="podium-3" class="glass-card flex-center stack podium-spot"
+                style="width: 200px; height: 50%; background: linear-gradient(to top, rgba(205,127,50,0.3), var(--glass));">
+                <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
+                <div class="score" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 15px;">0 pts
+                </div>
+                <div style="font-size: 2.5rem; font-weight: 900; opacity: 0.5;">3rd</div>
+            </div>
+        </div>
+
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 20px; padding: 20px 60px;">Back to
+            Hub</button>
+    </div>
+
+    <!-- Floating Fullscreen Button -->
+    <button class="fullscreen-fab" id="fullscreenFab" title="Toggle Fullscreen">⛶</button>
+
+    <script type="module" src="host-typing.js"></script>
+</body>
+
+</html>

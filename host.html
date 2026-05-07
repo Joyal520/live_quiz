@@ -1,0 +1,1288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EdTechra Live Quiz - Host Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2307051f'/%3E%3Cpath d='M16 44 32 10l16 34H36l-4 10-4-10H16Z' fill='%238b5cf6'/%3E%3Ccircle cx='42' cy='20' r='7' fill='%2322d3ee'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="teacher-layout.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      /* PREMIUM HOST DASHBOARD REDESIGN */
+      @media (min-width: 900px) {
+        .dashboard-layout {
+          height: 100vh !important;
+          max-width: 1240px !important;
+          padding: 22px 32px 26px !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: flex-start !important;
+        }
+
+        .dashboard-top-nav {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 18px;
+          flex-shrink: 0;
+        }
+
+        .dashboard-content-wrapper {
+          flex-direction: row !important;
+          align-items: stretch !important;
+          flex: 1;
+          min-height: 0;
+          gap: 26px !important;
+        }
+
+        .dashboard-left-panel {
+          width: 286px !important;
+          flex-shrink: 0;
+          display: block !important;
+        }
+
+        .info-blocks {
+          display: flex;
+          flex-direction: column;
+          height: auto;
+          gap: 14px;
+        }
+
+        .info-block {
+          flex: none !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          min-height: 92px !important;
+          padding: 14px 16px !important;
+          border-radius: 16px !important;
+          gap: 14px !important;
+          height: auto;
+        }
+
+        .info-block .chevron {
+          display: none !important;
+        }
+
+        .dashboard-main-panel {
+          flex: 1;
+          padding: 22px 30px 24px !important;
+          border-radius: 22px !important;
+          overflow: hidden !important;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+        }
+
+        .main-card {
+          height: auto;
+          min-height: 0;
+          gap: 14px !important;
+        }
+
+        .main-card-header {
+          margin-bottom: 8px !important;
+          padding-bottom: 18px !important;
+          flex-shrink: 0;
+        }
+
+        .premium-illustration {
+          width: 56px !important;
+          height: 56px !important;
+        }
+
+        .glass-clipboard {
+          width: 40px !important;
+          height: 52px !important;
+        }
+
+        .glass-trophy {
+          font-size: 1.72rem !important;
+        }
+
+        .header-text h1 {
+          font-size: clamp(1.78rem, 2.4vw, 2.35rem) !important;
+          margin-bottom: 5px !important;
+        }
+
+        .header-text p {
+          font-size: 0.9rem !important;
+          color: rgba(255, 255, 255, 0.62) !important;
+        }
+
+        .setup-controls {
+          flex: 0 0 auto;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          gap: 10px;
+        }
+
+        #sectionSelect,
+        #sectionCreate {
+          flex: 0 0 auto;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+        }
+
+        .settings-row {
+          margin-top: 4px !important;
+          padding-top: 4px;
+          gap: 12px !important;
+        }
+
+        .cta-wrapper {
+          margin-top: 12px !important;
+        }
+
+        .quiz-search-wrap {
+          margin-bottom: 0 !important;
+        }
+
+        .selected-quiz-badge {
+          margin-bottom: 0 !important;
+          padding: 10px 14px !important;
+          border-radius: 14px !important;
+          font-size: 0.88rem !important;
+        }
+
+        #quizResults {
+          max-height: 190px !important;
+        }
+
+        .quiz-result-item {
+          padding: 12px 14px !important;
+        }
+
+        .manual-form textarea.modern-input {
+          height: 52px !important;
+        }
+      }
+
+      /* Global Redesign Styles */
+      .dashboard-top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .dashboard-top-nav .brand {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        text-decoration: none;
+      }
+
+      .language-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+      }
+
+      .modern-tabs {
+        background: rgba(3, 5, 22, 0.42) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 999px !important;
+        padding: 4px !important;
+        margin-bottom: 0 !important;
+        display: flex;
+        flex-direction: row;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .modern-tabs .tab {
+        flex: 1;
+        min-height: 38px;
+        padding: 0 12px !important;
+        border-radius: 999px !important;
+        font-size: 0.86rem !important;
+        font-weight: 800 !important;
+        text-align: center;
+        letter-spacing: 0;
+      }
+
+      .modern-tabs .tab:hover {
+        background: rgba(255, 255, 255, 0.07) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+      }
+
+      .modern-tabs .tab.active {
+        background: linear-gradient(135deg, #8b5cf6, #555bf5) !important;
+        border-color: rgba(255, 255, 255, 0.22) !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255,255,255,0.16) !important;
+      }
+
+      .modern-input {
+        min-height: 46px;
+        padding: 10px 16px !important;
+        border-radius: 14px !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.11) !important;
+        font-size: 0.9rem !important;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .btn-cta {
+        width: min(560px, 100%) !important;
+        height: 48px !important;
+        padding: 0 18px !important;
+        border-radius: 999px !important;
+        font-size: 0.95rem !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #6d5df6 48%, #4f63f5 100%) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 10px;
+        animation: none !important;
+        position: relative;
+        box-shadow: 0 14px 34px rgba(99, 102, 241, 0.34), inset 0 1px 0 rgba(255,255,255,0.18) !important;
+      }
+
+      .btn-icon-right {
+        position: absolute;
+        right: 12px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+      }
+
+      .btn-cta:hover {
+        transform: translateY(-1px) scale(1.005) !important;
+        box-shadow: 0 18px 42px rgba(99, 102, 241, 0.44), inset 0 1px 0 rgba(255,255,255,0.22) !important;
+      }
+
+      .btn-cta:active {
+        transform: translateY(1px) scale(0.99) !important;
+      }
+
+      .info-block {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.032)),
+          rgba(21, 10, 45, 0.58) !important;
+        border: 1px solid rgba(255, 255, 255, 0.11) !important;
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+      }
+
+      .icon-wrap {
+        width: 46px !important;
+        height: 46px !important;
+      }
+
+      .info-block h4 {
+        margin-bottom: 4px !important;
+        color: #ffffff !important;
+        font-size: 0.94rem !important;
+        font-weight: 800 !important;
+        line-height: 1.08 !important;
+      }
+
+      .info-block p {
+        color: rgba(255, 255, 255, 0.66) !important;
+        font-size: 0.78rem !important;
+        line-height: 1.32 !important;
+      }
+
+      /* Background adjustments */
+      body {
+        background: #090919 !important; /* deep navy */
+      }
+
+      .liquid-bg {
+        background:
+          radial-gradient(
+            circle at 50% -10%,
+            rgba(139, 92, 246, 0.15),
+            transparent 40rem
+          ),
+          linear-gradient(145deg, #090919, #0c0b29 55%, #07051f) !important;
+      }
+
+      /* Mobile overrides */
+      @media (max-width: 899px) {
+        .dashboard-layout {
+          padding: 12px !important;
+          height: auto !important;
+          min-height: 100vh;
+        }
+        .dashboard-top-nav {
+          margin-bottom: 12px;
+        }
+        .dashboard-top-nav .brand {
+          font-size: 1.35rem;
+        }
+        .dashboard-content-wrapper {
+          flex-direction: column !important;
+          gap: 16px !important;
+        }
+        .dashboard-left-panel {
+          display: none !important; /* Hide features on mobile entirely */
+        }
+        .dashboard-main-panel {
+          padding: 20px 16px !important;
+          border-radius: 20px !important;
+          gap: 16px !important;
+        }
+        .main-card-header {
+          flex-direction: column !important;
+          align-items: center !important;
+          text-align: center !important;
+          gap: 12px !important;
+          padding-bottom: 16px !important;
+        }
+        .header-text h1 {
+          font-size: clamp(1.8rem, 6vw, 2.2rem) !important;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        .header-text p {
+          margin-top: 4px;
+        }
+        .settings-row {
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 16px;
+        }
+        .cta-wrapper {
+          margin-top: 16px !important;
+        }
+        .player-status-card .status-actions {
+          grid-template-columns: 1fr 1fr !important;
+        }
+      }
+
+      .host-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 24px;
+      }
+
+      .pin-display {
+        font-size: 120px;
+        font-weight: 900;
+        color: var(--accent-secondary);
+        text-shadow: var(--shadow-glow);
+        margin: 20px 0;
+        letter-spacing: 12px;
+      }
+
+      .player-pill {
+        background: var(--glass);
+        padding: 8px 16px;
+        border-radius: 99px;
+        margin: 4px;
+        display: inline-block;
+        border: 1px solid var(--glass-border);
+      }
+
+      .leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        border-bottom: 1px solid var(--glass-border);
+        transition: transform 0.3s ease;
+      }
+
+      .leaderboard-item:nth-child(1) {
+        color: var(--accent-warning);
+        font-weight: 800;
+        font-size: 1.2rem;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .game-view {
+        display: none;
+      }
+
+      .timer-ring {
+        width: 80px;
+        height: 80px;
+        border: 4px solid var(--accent-secondary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      /* Quiz Search Styles */
+      .quiz-search-wrap {
+        position: relative;
+        margin-bottom: 12px;
+      }
+
+      #quizSearchInput {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      #quizResults {
+        display: none;
+        margin-top: 8px;
+        max-height: 260px;
+        overflow-y: auto;
+        border-radius: 12px;
+        border: 1px solid var(--glass-border);
+        background: rgba(10, 10, 30, 0.85);
+        backdrop-filter: blur(12px);
+      }
+
+      .quiz-result-item {
+        padding: 14px 18px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--glass-border);
+        transition: background 0.2s;
+        text-align: left;
+      }
+
+      .quiz-result-item:last-child {
+        border-bottom: none;
+      }
+
+      .quiz-result-item:hover,
+      .quiz-result-item.selected {
+        background: rgba(99, 102, 241, 0.25);
+      }
+
+      .quiz-result-item .quiz-q-count {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .selected-quiz-badge {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        border-radius: 10px;
+        padding: 10px 16px;
+        margin-bottom: 16px;
+        font-weight: 600;
+      }
+
+      /* Question title — responsive font size (mobile → projector) */
+      #qTitle {
+        font-size: clamp(1.6rem, 2.2vw + 1rem, 3.2rem);
+        line-height: 1.2;
+        font-weight: 800;
+        margin: 0;
+      }
+
+      .selected-quiz-badge .clear-btn {
+        margin-left: auto;
+        cursor: pointer;
+        opacity: 0.7;
+        font-size: 18px;
+        background: none;
+        border: none;
+        color: white;
+      }
+
+      /* Confetti Canvas */
+      #confetti-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        display: none;
+      }
+
+      /* ── Podium Camera Zoom System ── */
+      .podium-stage {
+        display: flex;
+        align-items: flex-end;
+        gap: 30px;
+        height: 350px;
+        transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform-origin: center bottom;
+      }
+
+      .podium-stage.zoom-3rd {
+        transform: scale(1.6) translateX(30%);
+      }
+
+      .podium-stage.zoom-2nd {
+        transform: scale(1.6) translateX(-30%);
+      }
+
+      .podium-stage.zoom-1st {
+        transform: scale(1.8) translateX(0);
+      }
+
+      .podium-stage.zoom-out {
+        transform: scale(1) translateX(0);
+      }
+
+      .podium-spot {
+        transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: translateY(100px);
+        opacity: 0;
+        position: relative;
+      }
+
+      .podium-spot.reveal {
+        transform: translateY(0);
+        opacity: 1 !important;
+      }
+
+      /* Spotlight glow on each revealed spot */
+      .podium-spot.spotlight {
+        filter: brightness(1.3);
+        z-index: 10;
+      }
+
+      .podium-spot:not(.spotlight):not(:only-child) {
+        transition: filter 0.5s;
+      }
+
+      /* Extra effects for 1st place */
+      #podium-1.reveal {
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+        border: 4px solid var(--accent-warning);
+      }
+
+      #podium-1.spotlight {
+        animation: winner-pulse 1.5s ease-in-out infinite;
+        box-shadow:
+          0 0 80px rgba(255, 215, 0, 0.6),
+          0 0 160px rgba(255, 215, 0, 0.3),
+          inset 0 0 40px rgba(255, 215, 0, 0.15);
+      }
+
+      @keyframes winner-pulse {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+          filter: brightness(1.3);
+        }
+
+        50% {
+          transform: translateY(-8px) scale(1.05);
+          filter: brightness(1.6);
+        }
+      }
+
+      /* Crown emoji for winner */
+      .crown-icon {
+        font-size: 3rem;
+        animation: crown-bounce 1s ease-in-out infinite;
+        margin-bottom: 8px;
+      }
+
+      @keyframes crown-bounce {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-5deg);
+        }
+
+        50% {
+          transform: translateY(-10px) rotate(5deg);
+        }
+      }
+
+      /* Fullscreen floating button */
+      .fullscreen-fab {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--glass);
+        border: 1px solid var(--glass-border);
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(12px);
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+
+      .fullscreen-fab:hover {
+        transform: scale(1.12);
+        background: rgba(99, 102, 241, 0.4);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Liquid Background (Premium effect) -->
+    <div class="liquid-bg">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="blob blob-4"></div>
+      <div class="liquid-particle" style="left: 10%; animation-delay: 0s"></div>
+      <div
+        class="liquid-particle"
+        style="left: 30%; animation-delay: 5s; width: 8px; height: 8px"
+      ></div>
+      <div
+        class="liquid-particle"
+        style="left: 50%; animation-delay: 2s; width: 4px; height: 4px"
+      ></div>
+      <div class="liquid-particle" style="left: 70%; animation-delay: 7s"></div>
+      <div
+        class="liquid-particle"
+        style="left: 90%; animation-delay: 4s; width: 10px; height: 10px"
+      ></div>
+    </div>
+
+    <div class="aurora" style="display: none"></div>
+    <div class="bg-overlay" style="display: none"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- 1. SELECT QUIZ VIEW (TEACHER DASHBOARD) -->
+    <div
+      id="view-setup"
+      class="game-view dashboard-layout"
+      style="display: flex"
+    >
+      <header class="dashboard-top-nav">
+        <a href="index.html" class="brand">EdTechra</a>
+        <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
+        <div class="language-pill">
+          <i data-lucide="globe" style="width: 16px; height: 16px"></i>
+          English
+          <i
+            data-lucide="chevron-down"
+            style="width: 14px; height: 14px; margin-left: 2px"
+          ></i>
+        </div>
+      </header>
+
+      <div class="dashboard-content-wrapper">
+        <!-- Left Feature Panels -->
+        <aside class="dashboard-left-panel">
+          <div class="info-blocks">
+            <div class="info-block">
+              <div class="icon-wrap icon-shield">
+                <i
+                  data-lucide="shield-check"
+                  style="width: 20px; height: 20px"
+                ></i>
+              </div>
+              <div class="info-block-content">
+                <h4>Safe & Secure</h4>
+                <p>Your classroom is in good hands.</p>
+              </div>
+              <i
+                data-lucide="chevron-right"
+                class="chevron"
+                style="width: 20px; height: 20px"
+              ></i>
+            </div>
+            <div class="info-block">
+              <div class="icon-wrap icon-bolt">
+                <i data-lucide="zap" style="width: 20px; height: 20px"></i>
+              </div>
+              <div class="info-block-content">
+                <h4>Real-time Engagement</h4>
+                <p>Engage students with live quizzes.</p>
+              </div>
+              <i
+                data-lucide="chevron-right"
+                class="chevron"
+                style="width: 20px; height: 20px"
+              ></i>
+            </div>
+            <div class="info-block">
+              <div class="icon-wrap icon-users">
+                <i data-lucide="users" style="width: 20px; height: 20px"></i>
+              </div>
+              <div class="info-block-content">
+                <h4>Track Progress</h4>
+                <p>See performance and insights.</p>
+              </div>
+              <i
+                data-lucide="chevron-right"
+                class="chevron"
+                style="width: 20px; height: 20px"
+              ></i>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Form Panel -->
+        <main class="dashboard-main-panel">
+          <div class="main-card stack">
+            <div class="main-card-header">
+              <div class="premium-illustration">
+                <div class="glass-clipboard"></div>
+                <div class="glass-trophy">🏆</div>
+              </div>
+              <div class="header-text">
+                <h1>
+                  Prepare for <span class="gradient-text">Competition</span>
+                </h1>
+                <p>Prepare your students for an epic learning journey.</p>
+              </div>
+            </div>
+
+            <div class="setup-controls">
+              <div class="modern-tabs">
+                <div id="tabSelect" class="tab active">
+                  <i data-lucide="list" style="width: 16px; height: 16px"></i>
+                  Select Quiz
+                </div>
+                <div id="tabCreate" class="tab">
+                  <i
+                    data-lucide="plus-circle"
+                    style="width: 16px; height: 16px"
+                  ></i>
+                  Create Quiz
+                </div>
+              </div>
+
+              <!-- Tab 1: Select -->
+              <div id="sectionSelect">
+                <div class="quiz-search-wrap">
+                  <i data-lucide="search" class="search-icon-abs"></i>
+                  <input
+                    id="quizSearchInput"
+                    class="modern-input"
+                    type="text"
+                    placeholder="Search saved quizzes..."
+                    autocomplete="off"
+                  />
+                  <div id="quizResults"></div>
+                </div>
+              </div>
+
+              <!-- Tab 2: Create -->
+              <div id="sectionCreate" class="create-quiz-panel" style="display: none">
+                <div class="create-top-row">
+                  <input
+                    id="quizTitleInput"
+                    class="modern-input create-title-input"
+                    type="text"
+                    placeholder="Create a title..."
+                    autocomplete="off"
+                  />
+
+                  <div
+                    class="creation-method-toggle"
+                    role="tablist"
+                    aria-label="Quiz creation method"
+                  >
+                    <button
+                      type="button"
+                      class="creation-method-option active"
+                      data-creation-mode="manual"
+                      role="tab"
+                      aria-selected="true"
+                    >
+                      <i data-lucide="pen-line" style="width: 16px; height: 16px"></i>
+                      Manual Quiz Building
+                    </button>
+                    <button
+                      type="button"
+                      class="creation-method-option"
+                      data-creation-mode="ai"
+                      role="tab"
+                      aria-selected="false"
+                    >
+                      <i data-lucide="sparkles" style="width: 16px; height: 16px"></i>
+                      AI Prompt Building
+                    </button>
+                  </div>
+
+                  <select
+                    id="creationMode"
+                    class="method-select-fallback"
+                    aria-hidden="true"
+                    tabindex="-1"
+                  >
+                    <option value="manual">Manual Quiz Builder</option>
+                    <option value="ai">AI Prompt Builder</option>
+                  </select>
+                </div>
+
+                <div id="manualModeForm" class="manual-form">
+                  <div class="manual-builder-toolbar">
+                    <span id="manualQuestionCount" class="question-count-pill">
+                      Questions: 1
+                    </span>
+                  </div>
+
+                  <div id="manualBuilderBody" class="manual-builder-body">
+                    <div
+                      id="manualQuestionsList"
+                      class="manual-questions-list"
+                      aria-live="polite"
+                    ></div>
+                  </div>
+
+                  <div class="form-actions manual-actions">
+                    <button
+                      id="addManualQuestionBtn"
+                      type="button"
+                      class="btn-secondary"
+                    >
+                      <i
+                        data-lucide="plus"
+                        style="width: 16px; height: 16px"
+                      ></i>
+                      Add Next Question
+                    </button>
+                    <button
+                      id="saveManualQuizBtn"
+                      type="button"
+                      class="btn-initialize"
+                      style="margin-top: 0"
+                    >
+                      <i
+                        data-lucide="save"
+                        style="width: 16px; height: 16px"
+                      ></i>
+                      Save Quiz
+                    </button>
+                  </div>
+                  <div
+                    id="manualSaveStatus"
+                    class="builder-status-text"
+                    role="status"
+                  ></div>
+                </div>
+
+                <div
+                  id="importModeGuide"
+                  class="ai-guide"
+                  style="display: none"
+                >
+                  <div class="ai-prompt-grid">
+                    <input
+                      id="aiTopicInput"
+                      class="modern-input"
+                      type="text"
+                      placeholder="Quiz topic"
+                      autocomplete="off"
+                    />
+                    <input
+                      id="aiQuestionCountInput"
+                      class="modern-input"
+                      type="number"
+                      min="1"
+                      max="30"
+                      value="10"
+                      aria-label="Number of questions"
+                    />
+                  </div>
+
+                  <textarea
+                    id="aiPromptText"
+                    class="modern-input ai-prompt-text"
+                    readonly
+                    aria-label="AI prompt"
+                  ></textarea>
+
+                  <div class="form-actions ai-actions">
+                    <button
+                      id="copyAiPromptBtn"
+                      type="button"
+                      class="btn-secondary"
+                    >
+                      <i
+                        data-lucide="copy"
+                        style="width: 16px; height: 16px"
+                      ></i>
+                      Copy Prompt
+                    </button>
+                    <a
+                      id="openImporterBtn"
+                      href="import.html"
+                      class="btn-initialize importer-link"
+                      style="margin-top: 0"
+                    >
+                      <i
+                        data-lucide="wand-sparkles"
+                        style="width: 16px; height: 16px"
+                      ></i>
+                      Open Importer
+                    </a>
+                  </div>
+                  <div
+                    id="aiPromptStatus"
+                    class="builder-status-text"
+                    role="status"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Selected quiz badge -->
+              <div id="selectedQuizBadge" class="selected-quiz-badge">
+                <span>✅</span>
+                <span id="selectedQuizTitle">No quiz selected</span>
+                <button
+                  class="clear-btn"
+                  id="clearQuizBtn"
+                  title="Clear selection"
+                >
+                  ✖
+                </button>
+              </div>
+
+              <div class="settings-row">
+                <select id="hostModeSelect" class="modern-input">
+                  <option value="classroom">Classroom Host</option>
+                  <option value="distance">Distance Host</option>
+                </select>
+
+                <select id="modeSelect" class="modern-input">
+                  <option value="classic">Classic Mode</option>
+                  <option value="normal">Normal Mode (30s)</option>
+                  <option value="speed">Speed Battle (10s | 2x Bonus)</option>
+                  <option value="survival">
+                    Survival (60s | -200 on Wrong)
+                  </option>
+                </select>
+              </div>
+
+              <div class="cta-wrapper">
+                <button id="createBtn" class="btn-initialize btn-cta">
+                  Initialize Game PIN
+                  <div class="btn-icon-right">
+                    <i
+                      data-lucide="layout-grid"
+                      style="width: 16px; height: 16px"
+                    ></i>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- 2. LOBBY VIEW -->
+    <div id="view-lobby" class="game-view lobby-layout" style="display: none">
+      <div class="lobby-main-panel">
+        <header class="lobby-header">
+          <button
+            onclick="location.reload()"
+            class="btn-icon-back"
+            aria-label="Back"
+          >
+            <i data-lucide="arrow-left"></i> <span>Back</span>
+          </button>
+          <div class="lobby-top-controls">
+            <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
+            <button
+              class="btn-icon-back"
+              style="width: 40px; height: 40px"
+              aria-label="Settings"
+            >
+              <i data-lucide="settings" style="width: 20px; height: 20px"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="lobby-hero">
+          <h2 class="lobby-instruction">
+            JOIN AT <span class="highlight-text">JOIN.HTML</span> WITH PIN:
+          </h2>
+          <div id="lobbyPin" class="pin-digit-container animate-pulse">
+            <div class="digit-box">-</div>
+            <div class="digit-box">-</div>
+            <div class="digit-box">-</div>
+            <div class="digit-box">-</div>
+            <div class="digit-box">-</div>
+            <div class="digit-box">-</div>
+          </div>
+          <p class="lobby-sub-instruction">
+            Share this PIN with your students to join the game
+          </p>
+        </div>
+
+        <div class="player-status-card glass-card" style="padding: 24px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 20px;">
+          <div class="status-count" style="display: flex; justify-content: center; gap: 8px;">
+            <i data-lucide="users" style="color: #60a5fa"></i>
+            <span id="playerCount" style="font-size: 1.25rem; font-weight: 800;">0 Players Joined</span>
+          </div>
+          
+          <div class="status-actions" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%;">
+            <button id="copyPinBtn" class="btn-secondary btn-small" style="height: 48px; display: flex; justify-content: center;">
+              <i data-lucide="copy" style="width: 16px; height: 16px; margin-right: 6px;"></i> Copy PIN
+            </button>
+            <button id="waShareBtn" class="btn-secondary btn-small" style="height: 48px; display: flex; justify-content: center; color: #25D366; border-color: rgba(37,211,102,0.3);">
+              <i data-lucide="share-2" style="width: 16px; height: 16px; margin-right: 6px;"></i> WhatsApp
+            </button>
+            <button id="freezeLbBtn" class="btn-secondary btn-small" style="height: 48px; display: flex; justify-content: center;">
+              <i data-lucide="lock" style="width: 16px; height: 16px; margin-right: 6px;"></i> Freeze
+            </button>
+            <button id="toggleTopBtn" class="btn-secondary btn-small" style="height: 48px; display: flex; justify-content: center;">
+              <i data-lucide="trophy" style="width: 16px; height: 16px; margin-right: 6px;"></i> Top 10
+            </button>
+          </div>
+          <!-- Hidden to preserve JS functionality -->
+          <div id="playerList" style="display: none;"></div>
+        </div>
+
+        <div class="lobby-actions">
+          <button id="startBtn" class="btn-initialize btn-cta-start" style="height: 60px; font-size: 1.2rem;">
+            <i data-lucide="play" style="width: 20px; height: 20px; margin-right: 8px;"></i>
+            START GAME
+          </button>
+        </div>
+      </div>
+
+      <aside class="lobby-side-panel glass-card" style="display: flex; flex-direction: column;">
+        <div class="side-panel-header" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 0; display: flex; flex-direction: column; align-items: flex-start;">
+          <div class="title-with-icon" style="margin-bottom: 4px;">
+            <i
+              data-lucide="users"
+              style="width: 20px; height: 20px; color: #a855f7"
+            ></i>
+            <h3 style="font-size: 1.25rem;">Students Joined</h3>
+          </div>
+          <p style="margin: 0; font-size: 0.85rem; color: rgba(255,255,255,0.6);">Live classroom participants</p>
+          <button id="clearLogBtn" style="display: none;"></button>
+        </div>
+        <div id="lobbyLog" class="battle-log-list" style="flex: 1; overflow-y: auto; padding-right: 8px;">
+          <!-- JS dynamic content goes here -->
+          <div class="empty-state" style="text-align: center; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 20px;">
+            Waiting for students to join...
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 3. QUESTION VIEW -->
+    <div id="view-question" class="game-view stack" style="gap: 24px">
+      <div
+        class="glass-card"
+        style="
+          padding: 32px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div>
+          <h2 id="qTitle">Question Title</h2>
+          <div id="qCounter" style="margin-top: 8px; color: var(--text-muted)">
+            Question 1 of 10
+          </div>
+        </div>
+        <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
+        <div class="timer-ring" id="timer">--</div>
+      </div>
+      <div class="host-grid">
+        <div class="stack" style="gap: 16px">
+          <div
+            id="optionsList"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px"
+          >
+            <!-- Options will be populated here -->
+          </div>
+          <div class="btn-group">
+            <button id="nextBtn" class="btn-primary">Next Phase</button>
+          </div>
+        </div>
+        <div class="glass-card stack" style="padding: 24px; gap: 20px">
+          <div>
+            <h3>Live Submissions</h3>
+            <div
+              id="answerStats"
+              style="
+                font-size: 32px;
+                font-weight: 800;
+                text-align: center;
+                margin: 20px 0;
+              "
+            >
+              0 / 0
+            </div>
+            <div class="muted" style="text-align: center">Answers received</div>
+          </div>
+
+          <div class="question-status-card">
+            <div class="question-status-icon">
+              <i data-lucide="radio" style="width: 24px; height: 24px"></i>
+            </div>
+            <h4>Collecting answers</h4>
+            <p>
+              Scores stay hidden while students answer. The full leaderboard
+              appears at the end.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PODIUM VIEW -->
+    <div
+      id="view-podium"
+      class="game-view flex-center stack"
+      style="height: 100vh; gap: 40px; overflow: hidden"
+    >
+      <div aria-label="Podium settings" style="position: absolute; top: 20px; right: 20px;">
+        <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
+      </div>
+      <h1
+        id="podiumTitle"
+        class="animate-float"
+        style="
+          font-size: 5rem;
+          margin-bottom: 20px;
+          text-shadow: 0 0 30px var(--accent-primary);
+          opacity: 0;
+          transition: opacity 0.8s;
+        "
+      >
+        &#127942; CHAMPIONS &#127942;
+      </h1>
+      <div class="podium-stage" id="podiumStage">
+        <div
+          id="podium-2"
+          class="glass-card flex-center stack podium-spot"
+          style="
+            width: 200px;
+            height: 65%;
+            background: linear-gradient(
+              to top,
+              rgba(192, 192, 192, 0.3),
+              var(--glass)
+            );
+          "
+        >
+          <div class="name" style="font-weight: 800; font-size: 1.5rem">--</div>
+          <div
+            class="score"
+            style="
+              font-size: 1.2rem;
+              color: var(--text-muted);
+              margin-bottom: 15px;
+            "
+          >
+            0 pts
+          </div>
+          <div style="font-size: 3rem; font-weight: 900; opacity: 0.5">2nd</div>
+        </div>
+        <div
+          id="podium-1"
+          class="glass-card flex-center stack podium-spot"
+          style="
+            width: 250px;
+            height: 100%;
+            background: linear-gradient(
+              to top,
+              rgba(255, 215, 0, 0.3),
+              var(--glass)
+            );
+          "
+        >
+          <div class="crown-icon" style="display: none">👑</div>
+          <div
+            class="name"
+            style="
+              font-weight: 800;
+              font-size: 2rem;
+              color: var(--accent-warning);
+            "
+          >
+            --
+          </div>
+          <div
+            class="score"
+            style="
+              font-size: 1.5rem;
+              color: var(--accent-warning);
+              margin-bottom: 15px;
+            "
+          >
+            0 pts
+          </div>
+          <div style="font-size: 4.5rem; font-weight: 900">1st</div>
+        </div>
+        <div
+          id="podium-3"
+          class="glass-card flex-center stack podium-spot"
+          style="
+            width: 200px;
+            height: 50%;
+            background: linear-gradient(
+              to top,
+              rgba(205, 127, 50, 0.3),
+              var(--glass)
+            );
+          "
+        >
+          <div class="name" style="font-weight: 800; font-size: 1.5rem">--</div>
+          <div
+            class="score"
+            style="
+              font-size: 1.1rem;
+              color: var(--text-muted);
+              margin-bottom: 15px;
+            "
+          >
+            0 pts
+          </div>
+          <div style="font-size: 2.5rem; font-weight: 900; opacity: 0.5">
+            3rd
+          </div>
+        </div>
+      </div>
+      <div
+        id="podiumRows"
+        class="podium-row-list"
+        aria-label="Final leaderboard"
+      ></div>
+      <button
+        onclick="location.reload()"
+        class="btn-primary"
+        style="margin-top: 20px; padding: 20px 60px; font-size: 1.2rem"
+      >
+        New Game
+      </button>
+    </div>
+    <script type="module" src="host.js?v=init-lobby-fix-20260506"></script>
+  </body>
+</html>
