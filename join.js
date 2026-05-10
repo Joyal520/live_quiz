@@ -21,6 +21,10 @@ let timerRAF = null;
 let latestGameData = null;
 let isJoining = false;
 
+function isJoinableSessionStatus(status) {
+    return status === GameStatus.LOBBY || status === GameStatus.QUESTION || status === GameStatus.REVEAL;
+}
+
 // DOM
 const screens = {
     join: document.getElementById("screen-join"),
@@ -78,7 +82,7 @@ function handleBackNavigation() {
     if (window.history.length > 1) {
         window.history.back();
     } else {
-        window.location.href = "./join.html";
+        window.location.href = "./index.html";
     }
 }
 
@@ -166,6 +170,19 @@ joinBtn.addEventListener("click", async () => {
         if (!currentGameId) {
             throw new Error("PIN document does not contain a gameId.");
         }
+
+        const gameSnap = await getDoc(doc(db, "games", currentGameId));
+        if (!gameSnap.exists()) {
+            joinStatus.textContent = "PIN expired!";
+            return;
+        }
+
+        const gameData = gameSnap.data();
+        if (!isJoinableSessionStatus(gameData.status)) {
+            joinStatus.textContent = "This game has ended.";
+            return;
+        }
+
         console.info("[LiveQuiz] Session lookup success", { pin, gameId: currentGameId });
         currentPin = pin;
         profile.name = name;
@@ -222,6 +239,7 @@ function startListening() {
 
         // Read hostMode from game doc (default: classroom)
         hostMode = game.hostMode || "classroom";
+        document.body.dataset.hostMode = hostMode;
 
         switch (game.status) {
             case GameStatus.LOBBY:
@@ -242,6 +260,11 @@ function startListening() {
                 break;
             case GameStatus.FINISHED:
                 showFinalResults();
+                break;
+            case "ended":
+            case "cancelled":
+                joinStatus.textContent = "This game has ended.";
+                showScreen("join");
                 break;
         }
     }, (error) => {
@@ -338,10 +361,12 @@ function setupDistanceMode(q) {
     q.options.forEach((opt, i) => {
         const card = document.createElement("div");
         card.className = `distance-card ${colors[i % 4]}`;
+        card.dataset.answerIndex = String(i);
         card.setAttribute("aria-label", `Answer ${i + 1}: ${cleanText(opt)}`);
         card.innerHTML = `
             <div class="num-badge" style="background:${badgeColors[i % 4]}">${i + 1}</div>
             <span class="opt-text">${cleanText(opt)}</span>
+            <span class="choice-dot" aria-hidden="true"></span>
             <span class="lock-icon">&#128274;</span>
         `;
         card.addEventListener("click", () => {

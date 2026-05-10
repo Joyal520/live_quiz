@@ -1,7 +1,7 @@
-import { db, ensureAnonAuth, Fire } from "./firebase.js";
+import { db, ensureAnonAuth, TS, Fire } from "./firebase.js";
 import { bindExitFullscreenButtons, enterFullscreen } from "./fullscreen.js";
 
-const { doc, getDoc, collection, onSnapshot } = Fire;
+const { doc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } = Fire;
 
 const params = new URLSearchParams(window.location.search);
 let sessionId = params.get("sessionId") || params.get("gameId") || "";
@@ -13,6 +13,77 @@ let seenPlayerIds = new Set();
 let hasSeenInitialPlayers = false;
 let studentJoinOrder = [];
 let observedJoinTimes = new Map();
+let currentQuizId = "";
+
+const HOST_SESSION_KEY = "edtechra.hostSession";
+
+function saveHostSession(sessionId, pin, quizId) {
+    try {
+        localStorage.setItem(HOST_SESSION_KEY, JSON.stringify({
+            sessionId,
+            pin,
+            quizId,
+            savedAt: Date.now()
+        }));
+    } catch { /* ignore */ }
+}
+
+function clearHostSession() {
+    try {
+        localStorage.removeItem(HOST_SESSION_KEY);
+    } catch { /* ignore */ }
+}
+
+function isEndedSessionStatus(status) {
+    return status === "finished" || status === "ended" || status === "cancelled";
+}
+
+async function resetHostSession(options = {}) {
+    const { confirmReset = true } = options;
+    if (confirmReset && !confirm("End and reset this host session? The current PIN will stop working.")) {
+        return false;
+    }
+
+    clearHostSession();
+
+    if (sessionId) {
+        try {
+            await updateDoc(doc(db, "games", sessionId), {
+                status: "cancelled",
+                endedAt: TS(),
+                cancelledAt: TS()
+            });
+            console.info("[LiveQuiz] Lobby session marked cancelled", { sessionId });
+        } catch (error) {
+            console.error("[LiveQuiz] Lobby session cancel failed", error);
+        }
+    }
+
+    if (pin) {
+        try {
+            await deleteDoc(doc(db, "pins", pin));
+            console.info("[LiveQuiz] Lobby PIN deleted", { pin });
+        } catch (error) {
+            console.error("[LiveQuiz] Lobby PIN cleanup failed", error);
+        }
+    }
+
+    window.location.href = "./host.html";
+    return true;
+}
+
+function ensureResetSessionAction() {
+    if (document.getElementById("resetHostSessionBtn")) return;
+
+    const button = document.createElement("button");
+    button.id = "resetHostSessionBtn";
+    button.type = "button";
+    button.className = "btn-secondary";
+    button.textContent = "End / Reset Session";
+    button.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:10000;padding:10px 16px;border-radius:999px;";
+    button.addEventListener("click", () => resetHostSession());
+    document.body.appendChild(button);
+}
 
 const avatarGradients = [
     "linear-gradient(135deg, #8b5cf6, #6125f5)",
@@ -228,6 +299,11 @@ async function loadSession() {
     }
 
     const session = sessionSnap.data();
+    if (isEndedSessionStatus(session.status)) {
+        clearHostSession();
+        throw new Error(`Host lobby session is ${session.status}.`);
+    }
+
     pin = pin || session.pin || "";
     renderPin(pin);
 
@@ -236,6 +312,7 @@ async function loadSession() {
     setStatus("Lobby active");
 
     if (session.quizId) {
+        currentQuizId = session.quizId;
         const quizSnap = await getDoc(doc(db, "quizzes", session.quizId));
         if (quizSnap.exists() && els.quizTitleText) {
             els.quizTitleText.textContent = `Quiz: ${quizSnap.data().title || "Untitled"}`;
@@ -247,6 +324,9 @@ async function loadSession() {
         pin,
         quizId: session.quizId || ""
     });
+
+    // Make sure session is persisted before starting game
+    saveHostSession(sessionId, pin, session.quizId || "");
 
     listenToPlayers();
 }
@@ -419,11 +499,18 @@ function toggleLimit() {
     if (window.lucide) window.lucide.createIcons();
 }
 
+function handleLobbyBackNavigation() {
+    if (window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    window.location.href = "./host.html";
+}
+
 function bindEvents() {
     els.backBtn?.addEventListener("click", () => {
-        if (confirm("Leave this lobby? Students will no longer be able to join this session.")) {
-            window.location.href = "./host.html";
-        }
+        handleLobbyBackNavigation();
     });
     els.copyPinBtn?.addEventListener("click", copyPin);
     els.waShareBtn?.addEventListener("click", shareWhatsApp);
@@ -438,6 +525,7 @@ function bindEvents() {
 async function init() {
     bindEvents();
     bindExitFullscreenButtons();
+    ensureResetSessionAction();
     renderPin(pin);
     renderStudents([]);
     if (window.lucide) window.lucide.createIcons();

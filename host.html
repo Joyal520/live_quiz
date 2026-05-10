@@ -15,7 +15,7 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2307051f'/%3E%3Cpath d='M16 44 32 10l16 34H36l-4 10-4-10H16Z' fill='%238b5cf6'/%3E%3Ccircle cx='42' cy='20' r='7' fill='%2322d3ee'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="teacher-layout.css" />
+    <link rel="stylesheet" href="teacher-layout.css?v=ui-nav-fix-20260510" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
       /* PREMIUM HOST DASHBOARD REDESIGN */
@@ -24,7 +24,7 @@
           height: 100vh !important;
           max-width: 1240px !important;
           padding: 22px 32px 26px !important;
-          display: flex !important;
+          display: flex;
           flex-direction: column !important;
           justify-content: flex-start !important;
         }
@@ -684,7 +684,13 @@
       style="display: flex"
     >
       <header class="dashboard-top-nav">
-        <a href="index.html" class="brand">EdTechra</a>
+        <div class="host-nav-left">
+          <button type="button" class="host-back-button live-quiz-back-button" data-live-back aria-label="Back">
+            <i data-lucide="arrow-left"></i>
+            <span>Back</span>
+          </button>
+          <a href="index.html" class="brand">EdTechra</a>
+        </div>
         <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
         <div class="language-pill">
           <i data-lucide="globe" style="width: 16px; height: 16px"></i>
@@ -782,14 +788,16 @@
               <!-- Tab 1: Select -->
               <div id="sectionSelect">
                 <div class="quiz-search-wrap">
-                  <i data-lucide="search" class="search-icon-abs"></i>
-                  <input
-                    id="quizSearchInput"
-                    class="modern-input"
-                    type="text"
-                    placeholder="Search saved quizzes..."
-                    autocomplete="off"
-                  />
+                  <div class="quiz-search-input-shell">
+                    <i data-lucide="search" class="search-icon-abs"></i>
+                    <input
+                      id="quizSearchInput"
+                      class="modern-input"
+                      type="text"
+                      placeholder="Search saved quizzes..."
+                      autocomplete="off"
+                    />
+                  </div>
                   <div id="quizResults"></div>
                 </div>
               </div>
@@ -1005,8 +1013,8 @@
       <div class="lobby-main-panel">
         <header class="lobby-header">
           <button
-            onclick="location.reload()"
             class="btn-icon-back"
+            data-live-back
             aria-label="Back"
           >
             <i data-lucide="arrow-left"></i> <span>Back</span>
@@ -1094,38 +1102,52 @@
     </div>
 
     <!-- 3. QUESTION VIEW -->
-    <div id="view-question" class="game-view stack" style="gap: 24px">
-      <div
-        class="glass-card"
-        style="
-          padding: 32px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        "
-      >
-        <div>
-          <h2 id="qTitle">Question Title</h2>
-          <div id="qCounter" style="margin-top: 8px; color: var(--text-muted)">
-            Question 1 of 10
+    <div id="view-question" class="game-view stack live-host-screen" style="gap: 24px">
+      <div class="live-host-topbar">
+        <button type="button" class="host-back-button live-quiz-back-button live-host-back-button" data-live-back aria-label="Back">
+          <i data-lucide="arrow-left"></i>
+          <span>Back</span>
+        </button>
+        <div class="live-stat-card">
+          <span>Game PIN</span>
+          <strong id="hostLivePin">---</strong>
+        </div>
+        <div class="live-brand-block">
+          <span>EdTechra</span>
+          <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
+        </div>
+        <div class="live-stat-card">
+          <span>Players</span>
+          <strong id="hostLivePlayers">0</strong>
+        </div>
+      </div>
+
+      <div class="live-question-shell">
+        <div class="live-progress-row">
+          <div id="qCounter" class="live-question-pill">Question 1 of 10</div>
+          <div class="live-timer-card">
+            <div class="timer-ring" id="timer">--</div>
+            <span>sec</span>
           </div>
         </div>
-        <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
-        <div class="timer-ring" id="timer">--</div>
-      </div>
-      <div class="host-grid">
-        <div class="stack" style="gap: 16px">
+
+        <div class="host-grid live-host-grid">
+          <div class="stack live-question-main" style="gap: 16px">
+            <div class="live-question-card">
+              <span class="live-question-icon">?</span>
+              <h2 id="qTitle">Question Title</h2>
+            </div>
           <div
             id="optionsList"
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px"
+            class="live-answer-grid"
           >
             <!-- Options will be populated here -->
           </div>
-          <div class="btn-group">
+          <div class="btn-group live-next-row">
             <button id="nextBtn" class="btn-primary">Next Phase</button>
           </div>
         </div>
-        <div class="glass-card stack" style="padding: 24px; gap: 20px">
+        <div class="glass-card stack live-submissions-panel" style="padding: 24px; gap: 20px">
           <div>
             <h3>Live Submissions</h3>
             <div
@@ -1154,6 +1176,7 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
 
     <!-- 4. PODIUM VIEW -->
@@ -1165,6 +1188,10 @@
       <div aria-label="Podium settings" style="position: absolute; top: 20px; right: 20px;">
         <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
       </div>
+      <button type="button" class="host-back-button live-quiz-back-button podium-back-button" data-live-back aria-label="Back">
+        <i data-lucide="arrow-left"></i>
+        <span>Back</span>
+      </button>
       <h1
         id="podiumTitle"
         class="animate-float"
@@ -1283,6 +1310,6 @@
         New Game
       </button>
     </div>
-    <script type="module" src="host.js?v=init-lobby-fix-20260506"></script>
+    <script type="module" src="host.js?v=ui-nav-fix-20260510"></script>
   </body>
 </html>
