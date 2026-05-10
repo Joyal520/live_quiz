@@ -149,6 +149,10 @@ function isLiveSessionStatus(status) {
     return status === GameStatus.QUESTION || status === GameStatus.REVEAL;
 }
 
+function isEndedSessionStatus(status) {
+    return status === GameStatus.FINISHED || status === "ended" || status === "cancelled";
+}
+
 let lastHostFallbackReason = "";
 
 function setHostFallbackReason(reason, detail = {}) {
@@ -174,6 +178,145 @@ let isRevealing = false;
 let answersUnsub = null;
 let isCreatingGame = false;
 let hasActiveLobby = false;
+let staleHostSessionForReset = null;
+
+// -- Host Session Persistence (localStorage) --------------------------------
+const HOST_SESSION_KEY = "edtechra.hostSession";
+
+function saveHostSession(sessionId, pin, quizId) {
+    try {
+        localStorage.setItem(HOST_SESSION_KEY, JSON.stringify({
+            sessionId,
+            pin,
+            quizId,
+            savedAt: Date.now()
+        }));
+        console.info("[LiveQuiz][Host] Session saved to localStorage", { sessionId, pin });
+    } catch { /* storage unavailable */ }
+}
+
+function loadHostSession() {
+    try {
+        const raw = localStorage.getItem(HOST_SESSION_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        // Expire after 4 hours
+        if (Date.now() - (data.savedAt || 0) > 4 * 60 * 60 * 1000) {
+            clearHostSession();
+            return null;
+        }
+        return data;
+    } catch {
+        return null;
+    }
+}
+
+function clearHostSession() {
+    try {
+        localStorage.removeItem(HOST_SESSION_KEY);
+    } catch { /* ignore */ }
+}
+
+function getKnownHostSession() {
+    const saved = loadHostSession();
+    return {
+        sessionId: currentGameId || saved?.sessionId || staleHostSessionForReset?.sessionId || "",
+        pin: currentPin || saved?.pin || staleHostSessionForReset?.pin || ""
+    };
+}
+
+async function resetHostSession(options = {}) {
+    const { redirect = true, confirmReset = true } = options;
+    const known = getKnownHostSession();
+
+    if (confirmReset && !confirm("End and reset this host session? The current PIN will stop working.")) {
+        return false;
+    }
+
+    staleHostSessionForReset = loadHostSession();
+    clearHostSession();
+    hasActiveLobby = false;
+    isCreatingGame = false;
+
+    try {
+        await ensureAnonAuth();
+    } catch (error) {
+        showFirebaseError("Reset auth check failed", error);
+    }
+
+    if (known.sessionId) {
+        try {
+            await updateDoc(doc(db, "games", known.sessionId), {
+                status: "cancelled",
+                endedAt: TS(),
+                cancelledAt: TS()
+            });
+            console.info("[LiveQuiz][Host] Session marked cancelled", { sessionId: known.sessionId });
+        } catch (error) {
+            showFirebaseError("Session cancel failed", error);
+        }
+    }
+
+    if (known.pin) {
+        try {
+            await deleteDoc(doc(db, "pins", known.pin));
+            console.info("[LiveQuiz][Host] PIN deleted", { pin: known.pin });
+        } catch (error) {
+            showFirebaseError("PIN cleanup failed", error);
+        }
+    }
+
+    currentGameId = null;
+    currentPin = "";
+    currentQuiz = null;
+    players = {};
+    if (playersUnsubscribe) {
+        playersUnsubscribe();
+        playersUnsubscribe = null;
+    }
+    if (lbUnsubscribe) {
+        lbUnsubscribe();
+        lbUnsubscribe = null;
+    }
+    if (answersUnsub) {
+        answersUnsub();
+        answersUnsub = null;
+    }
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    if (redirect) {
+        window.location.href = "./host.html";
+    } else {
+        showView("setup");
+        setSetupStatus("Previous session reset. You can create a new PIN.", "success");
+    }
+
+    return true;
+}
+
+function ensureResetSessionAction() {
+    if (document.getElementById("resetHostSessionBtn")) return;
+
+    const button = document.createElement("button");
+    button.id = "resetHostSessionBtn";
+    button.type = "button";
+    button.className = "btn-secondary reset-host-session-control";
+    button.textContent = "End / Reset Session";
+    button.addEventListener("click", () => resetHostSession());
+    document.body.appendChild(button);
+}
+
+function handleLiveQuizBackNavigation() {
+    if (window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    window.location.href = "./index.html";
+}
 
 // -- Audio ---------------------------------------------------------------------
 const sounds = {
@@ -220,7 +363,14 @@ const timerEl = document.getElementById("timer");
 const optionsList = document.getElementById("optionsList");
 const nextBtn = document.getElementById("nextBtn");
 const answerStats = document.getElementById("answerStats");
+const hostLivePinEl = document.getElementById("hostLivePin");
+const hostLivePlayersEl = document.getElementById("hostLivePlayers");
 const confettiCanvas = document.getElementById("confetti-canvas");
+
+document.body.dataset.hostView = "setup";
+document.querySelectorAll("[data-live-back]").forEach((button) => {
+    button.addEventListener("click", handleLiveQuizBackNavigation);
+});
 
 let hostLoadingEl = null;
 
@@ -255,6 +405,9 @@ function showHostLoading(message = "Restoring host session...") {
 
 function hideHostLoading() {
     if (hostLoadingEl) hostLoadingEl.style.display = "none";
+    // Also remove the transition overlay if present
+    const overlay = document.getElementById("lobbyTransitionOverlay");
+    if (overlay) overlay.style.display = "none";
 }
 
 // Creation/Tab Elements
@@ -278,10 +431,61 @@ const aiQuestionCountInput = document.getElementById("aiQuestionCountInput");
 const aiPromptText = document.getElementById("aiPromptText");
 const copyAiPromptBtn = document.getElementById("copyAiPromptBtn");
 const aiPromptStatus = document.getElementById("aiPromptStatus");
+const openImporterBtn = document.getElementById("openImporterBtn");
 const MANUAL_OPTION_COLORS = ["purple", "blue", "orange", "green"];
 const CREATION_MODE_STORAGE_KEY = "edtechra.creationMode";
 let manualQuestionKey = 0;
 let savedManualQuizState = { id: "", signature: "" };
+
+let setupStatusEl = null;
+const createBtnDefaultHtml = createBtn?.innerHTML || "";
+
+function getSetupStatusEl() {
+    if (setupStatusEl) return setupStatusEl;
+    const wrapper = createBtn?.closest(".cta-wrapper") || createBtn?.parentElement;
+    if (!wrapper) return null;
+
+    setupStatusEl = document.createElement("div");
+    setupStatusEl.id = "hostSetupStatus";
+    setupStatusEl.setAttribute("role", "status");
+    setupStatusEl.style.cssText = "margin-top:12px;color:rgba(255,255,255,0.72);font-weight:700;text-align:center;";
+    wrapper.appendChild(setupStatusEl);
+    return setupStatusEl;
+}
+
+function setSetupStatus(message = "", type = "info") {
+    const el = getSetupStatusEl();
+    if (!el) return;
+    el.textContent = message;
+    el.style.display = message ? "block" : "none";
+    el.style.color =
+        type === "error" ? "#fca5a5" :
+            type === "success" ? "#86efac" :
+                "rgba(255,255,255,0.72)";
+}
+
+function setCreateButtonLoading(isLoading, label = "Initializing Game PIN...") {
+    if (!createBtn) return;
+    createBtn.disabled = isLoading || hasActiveLobby;
+    createBtn.innerHTML = isLoading ? escapeHtml(label) : createBtnDefaultHtml;
+    if (!isLoading && window.lucide) window.lucide.createIcons();
+}
+
+function setQuizResultsState(message, type = "info", options = {}) {
+    if (!quizResults) return;
+    const { show = true } = options;
+    const color =
+        type === "error" ? "#fca5a5" :
+            type === "success" ? "#86efac" :
+                "rgba(255,255,255,0.58)";
+
+    quizResults.innerHTML = `
+        <div class="quiz-result-item" style="opacity:1; cursor:default; color:${color};">
+            ${escapeHtml(message)}
+        </div>
+    `;
+    quizResults.style.display = show ? "block" : "none";
+}
 
 function getStoredCreationMode() {
     try {
@@ -584,6 +788,10 @@ quizTitleInput?.addEventListener("input", markManualDraftDirty);
 aiTopicInput?.addEventListener("input", updateAiPrompt);
 aiQuestionCountInput?.addEventListener("input", updateAiPrompt);
 copyAiPromptBtn?.addEventListener("click", copyAiPrompt);
+openImporterBtn?.addEventListener("click", () => {
+    console.info("[LiveQuiz][Host] Opening quiz importer");
+    window.location.href = "./import.html";
+});
 
 ensureManualBuilder();
 setCreationMode(getStoredCreationMode(), { persist: false });
@@ -652,14 +860,15 @@ function launchConfetti() {
 
 // -- Quiz Search UI ------------------------------------------------------------
 function renderQuizResults(filter = "") {
+    if (!quizResults) return;
     const term = filter.toLowerCase().trim();
     const matches = term
-        ? allQuizzes.filter(q => q.title.toLowerCase().includes(term))
+        ? allQuizzes.filter(q => String(q.title || "").toLowerCase().includes(term))
         : allQuizzes;
 
     quizResults.innerHTML = "";
     if (matches.length === 0) {
-        quizResults.innerHTML = `<div class="quiz-result-item" style="opacity:0.5; cursor:default;">No quizzes found</div>`;
+        setQuizResultsState(term ? "No quizzes match your search." : "No saved quizzes yet. Create or import a quiz to get started.");
     } else {
         matches.forEach(q => {
             const div = document.createElement("div");
@@ -669,7 +878,7 @@ function renderQuizResults(filter = "") {
             div.style.alignItems = "center";
             div.innerHTML = `
                 <div>
-                    <div style="font-weight:700">${q.title}</div>
+                    <div style="font-weight:700">${escapeHtml(q.title || "Untitled")}</div>
                     <div class="quiz-q-count">${q.questions.length} question${q.questions.length !== 1 ? "s" : ""}</div>
                 </div>
                 <button class="btn-small delete-quiz-btn" style="background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.5); padding: 4px 8px;" title="Delete Quiz">Delete</button>
@@ -684,9 +893,14 @@ function renderQuizResults(filter = "") {
             div.querySelector(".delete-quiz-btn").addEventListener("click", async (e) => {
                 e.stopPropagation();
                 if (confirm(`Are you sure you want to delete "${q.title}"?`)) {
-                    await deleteDoc(doc(db, "quizzes", q.id));
-                    await loadQuizzes();
-                    renderQuizResults(quizSearchInput.value);
+                    try {
+                        await deleteDoc(doc(db, "quizzes", q.id));
+                        await loadQuizzes();
+                        renderQuizResults(quizSearchInput?.value || "");
+                    } catch (error) {
+                        const message = showFirebaseError("Quiz delete failed", error);
+                        setQuizResultsState(message, "error", { show: true });
+                    }
                 }
             });
             quizResults.appendChild(div);
@@ -696,35 +910,39 @@ function renderQuizResults(filter = "") {
 }
 
 function selectQuiz(q) {
+    if (!q?.id) return;
     selectedQuizId = q.id;
-    selectedQuizTitle.textContent = q.title;
-    selectedQuizBadge.style.display = "flex";
-    quizResults.style.display = "none";
-    quizSearchInput.value = "";
+    if (selectedQuizTitle) selectedQuizTitle.textContent = q.title || "Untitled";
+    if (selectedQuizBadge) selectedQuizBadge.style.display = "flex";
+    if (quizResults) quizResults.style.display = "none";
+    if (quizSearchInput) quizSearchInput.value = "";
+    setSetupStatus("");
 }
 
 function clearSelection() {
     selectedQuizId = null;
-    selectedQuizBadge.style.display = "none";
-    quizSearchInput.value = "";
-    quizResults.style.display = "none";
+    if (selectedQuizBadge) selectedQuizBadge.style.display = "none";
+    if (quizSearchInput) quizSearchInput.value = "";
+    if (quizResults) quizResults.style.display = "none";
+    setSetupStatus("");
 }
 
-quizSearchInput.addEventListener("input", () => {
+quizSearchInput?.addEventListener("input", () => {
     renderQuizResults(quizSearchInput.value);
 });
 
-quizSearchInput.addEventListener("focus", () => {
-    if (allQuizzes.length) renderQuizResults(quizSearchInput.value);
+quizSearchInput?.addEventListener("focus", () => {
+    renderQuizResults(quizSearchInput.value);
 });
 
 document.addEventListener("click", (e) => {
-    if (!document.querySelector(".quiz-search-wrap").contains(e.target)) {
+    const searchWrap = document.querySelector(".quiz-search-wrap");
+    if (searchWrap && !searchWrap.contains(e.target) && quizResults) {
         quizResults.style.display = "none";
     }
 });
 
-clearQuizBtn.addEventListener("click", clearSelection);
+clearQuizBtn?.addEventListener("click", clearSelection);
 
 // -- Leaderboard UI Helpers ----------------------------------------------------
 function toggleLbFreeze() {
@@ -845,26 +1063,29 @@ function startLeaderboardListener() {
             players[d.id] = { id: d.id, ...d.data() };
         });
         playerCountEl.textContent = `${snap.size} Players Joined`;
+        if (hostLivePlayersEl) hostLivePlayersEl.textContent = String(snap.size);
     }, (error) => {
         showFirebaseError("Players listener error", error);
     });
 }
 
 // -- Tab & Creation Logic ------------------------------------------------------
-tabSelect.addEventListener("click", () => {
+tabSelect?.addEventListener("click", () => {
     tabSelect.classList.add("active");
-    tabCreate.classList.remove("active");
-    sectionSelect.style.display = "block";
-    sectionCreate.style.display = "none";
+    tabCreate?.classList.remove("active");
+    if (sectionSelect) sectionSelect.style.display = "block";
+    if (sectionCreate) sectionCreate.style.display = "none";
     clearSelection();
+    setSetupStatus("");
 });
 
-tabCreate.addEventListener("click", () => {
+tabCreate?.addEventListener("click", () => {
     tabCreate.classList.add("active");
-    tabSelect.classList.remove("active");
-    sectionCreate.style.display = "block";
-    sectionSelect.style.display = "none";
+    tabSelect?.classList.remove("active");
+    if (sectionCreate) sectionCreate.style.display = "block";
+    if (sectionSelect) sectionSelect.style.display = "none";
     clearSelection(); // Clear search selection if we're creating
+    setSetupStatus("");
 });
 
 // -- Initialization ------------------------------------------------------------
@@ -880,36 +1101,69 @@ async function init() {
     document.getElementById("freezeLbBtn")?.addEventListener("click", toggleLbFreeze);
     document.getElementById("freezeGameLbBtn")?.addEventListener("click", toggleLbFreeze);
     document.getElementById("toggleTopBtn")?.addEventListener("click", toggleLbLimit);
+    ensureResetSessionAction();
 
     const params = new URLSearchParams(window.location.search);
-    const routeSessionId = params.get("sessionId") || params.get("gameId") || "";
+    let routeSessionId = params.get("sessionId") || params.get("gameId") || "";
+    let routePin = params.get("pin") || "";
+    let routeStart = params.get("start") || "";
+
+    // Normal host.html opens must never restore from localStorage.
+    // Only explicit ?sessionId=...&start=1 routes may restore gameplay.
     console.info("[LiveQuiz][Host] url params", {
         sessionId: routeSessionId,
-        pin: params.get("pin") || "",
-        start: params.get("start") || "",
+        pin: routePin,
+        start: routeStart,
         hash: window.location.hash || ""
     });
 
-    const hasSessionRoute = Boolean(routeSessionId);
+    const hasSessionRoute = routeStart === "1" && Boolean(routeSessionId);
     if (hasSessionRoute) {
+        // Immediately hide setup so it never flashes
+        if (views.setup) views.setup.style.display = "none";
         showHostLoading("Restoring host session...");
-        const loadedGame = await loadGameSessionFromUrl(params);
-        if (loadedGame) {
-            hideHostLoading();
-            return;
+
+        try {
+            const loadedGame = await loadGameSessionFromUrl(params);
+            if (loadedGame) {
+                hideHostLoading();
+                return;
+            }
+        } catch (err) {
+            console.error("[LiveQuiz][Host] Unhandled init error during session load", err);
         }
 
-        showHostLoading("Could not restore this live session. Please check the console before creating a new session.");
+        // Session load failed — show clear error, do NOT fall through to setup
+        showHostLoading("Could not restore this live session. Reload the page or return to host setup.");
         setHostFallbackReason(lastHostFallbackReason || "session route failed to restore; setup fallback suppressed", {
             sessionId: routeSessionId
         });
+
+        // Add a button to let the user go back to setup
+        if (hostLoadingEl && !hostLoadingEl.querySelector(".host-retry-btn")) {
+            const retryBtn = document.createElement("button");
+            retryBtn.className = "host-retry-btn";
+            retryBtn.textContent = "End / Reset Session";
+            retryBtn.style.cssText = "margin-top:18px;padding:12px 32px;border:1px solid rgba(139,92,246,0.5);border-radius:12px;background:rgba(139,92,246,0.25);color:white;font-weight:800;cursor:pointer;";
+            retryBtn.addEventListener("click", () => resetHostSession({ confirmReset: false }));
+            hostLoadingEl.appendChild(retryBtn);
+        }
         return;
     }
 
+    // No session route — show the setup page
+    // Clear any stale saved session (user intentionally opened setup)
+    staleHostSessionForReset = loadHostSession();
+    clearHostSession();
+
     try {
+        await ensureAnonAuth();
+        console.info("[LiveQuiz] Firebase auth ready before fetching quizzes");
         await loadQuizzes();
     } catch (error) {
-        showFirebaseError("Quiz load failed", error);
+        const message = showFirebaseError("Quiz load failed", error);
+        setQuizResultsState(message, "error", { show: true });
+        setSetupStatus("Saved quizzes could not be loaded. Check your Firebase connection and try again.", "error");
     }
 
     const loadedLobby = await loadLobbySessionFromUrl(params);
@@ -922,27 +1176,45 @@ async function init() {
         if (found) selectQuiz(found);
     }
 
-    ensureAnonAuth()
-        .then((user) => console.info("[LiveQuiz] Firebase auth ready", user.uid))
-        .catch((error) => showFirebaseError("Firebase anonymous auth failed", error));
-
     logHostRenderBranch(HostRouteState.SETUP, { reason: "no active session route" });
 }
 
 async function loadQuizzes() {
+    setQuizResultsState("Loading saved quizzes...", "info", { show: true });
     const snap = await getDocs(collection(db, "quizzes"));
     allQuizzes = [];
     snap.forEach(d => {
         const data = d.data();
-        allQuizzes.push({ id: d.id, title: data.title || "Untitled", questions: data.questions || [] });
+        allQuizzes.push({
+            id: d.id,
+            title: data.title || "Untitled",
+            questions: Array.isArray(data.questions) ? data.questions : []
+        });
     });
+
+    if (!allQuizzes.length) {
+        setQuizResultsState("No saved quizzes yet. Create or import a quiz to get started.", "info", { show: true });
+        return;
+    }
+
+    if (quizSearchInput && document.activeElement === quizSearchInput) {
+        renderQuizResults(quizSearchInput.value);
+    } else {
+        const label = allQuizzes.length === 1 ? "quiz" : "quizzes";
+        setQuizResultsState(`${allQuizzes.length} saved ${label} loaded. Search or click the field to choose one.`, "success", { show: true });
+    }
 }
 
 // -- View Switching ------------------------------------------------------------
 function showView(viewId) {
-    Object.values(views).forEach(v => v.style.display = "none");
-    views[viewId].style.display = "flex";
-    if (viewId === "podium") views.podium.style.display = "flex";
+    // Hide ALL views including any loading overlays
+    Object.values(views).forEach(v => { if (v) v.style.display = "none"; });
+    hideHostLoading();
+    document.body.dataset.hostView = viewId;
+
+    if (views[viewId]) {
+        views[viewId].style.display = "flex";
+    }
 
     // Stop lobby music when entering any game phase
     if (viewId !== "setup" && viewId !== "lobby") {
@@ -959,6 +1231,8 @@ function showView(viewId) {
         lbUnsubscribe();
         lbUnsubscribe = null;
     }
+
+    console.info("[LiveQuiz][Host] showView", viewId);
 }
 
 function enterLobbyView() {
@@ -1072,6 +1346,11 @@ async function loadGameSessionFromUrl(params) {
     const sessionId = params.get("sessionId") || params.get("gameId");
 
     if (!sessionId) return false;
+    if (!shouldStart) {
+        console.info("[LiveQuiz][Host] Ignoring session route without start=1", { sessionId });
+        clearHostSession();
+        return false;
+    }
 
     console.info("[LiveQuiz] Host session route detected", {
         sessionId,
@@ -1087,9 +1366,24 @@ async function loadGameSessionFromUrl(params) {
         }
 
         const gameData = gameSnap.data();
+        const sessionStatus = gameData.status || GameStatus.LOBBY;
+        if (isEndedSessionStatus(sessionStatus)) {
+            clearHostSession();
+            throw new Error(`Host game session is ${sessionStatus}.`);
+        }
+
+        const routePin = params.get("pin") || "";
+        if (routePin) {
+            const pinSnap = await Fire.getDoc(doc(db, "pins", routePin));
+            if (!pinSnap.exists() || pinSnap.data().gameId !== sessionId) {
+                clearHostSession();
+                throw new Error("Host game PIN is stale or does not match this session.");
+            }
+        }
+
         console.info("[LiveQuiz][Host] firebase session loaded", {
             sessionId,
-            status: gameData.status || "",
+            status: sessionStatus,
             qIndex: getSessionQuestionIndex(gameData),
             quizId: gameData.quizId || "",
             pin: gameData.pin || ""
@@ -1107,11 +1401,13 @@ async function loadGameSessionFromUrl(params) {
         currentQuiz.gameMode = gameData.gameMode;
         currentQuiz.hostMode = gameData.hostMode;
 
+        // Persist session to localStorage so we can recover on refresh/reload
+        saveHostSession(sessionId, currentPin, gameData.quizId);
+
         if (modeSelect && gameData.gameMode) modeSelect.value = gameData.gameMode;
         const hostModeSelect = document.getElementById("hostModeSelect");
         if (hostModeSelect && gameData.hostMode) hostModeSelect.value = gameData.hostMode;
 
-        const sessionStatus = gameData.status || GameStatus.LOBBY;
         const sessionQIndex = getSessionQuestionIndex(gameData);
         const gameStarted = shouldStart || isLiveSessionStatus(sessionStatus) || sessionStatus === GameStatus.FINISHED || sessionQIndex >= 0;
 
@@ -1225,7 +1521,7 @@ async function loadGameSessionFromUrl(params) {
 }
 
 // -- 1. Setup Phase ------------------------------------------------------------
-createBtn.addEventListener("click", async () => {
+createBtn?.addEventListener("click", async () => {
     console.info("[LiveQuiz][Host] Initialize button clicked");
     if (isCreatingGame) {
         console.warn("[LiveQuiz][Host] Initialize aborted because: session creation already in progress");
@@ -1235,26 +1531,32 @@ createBtn.addEventListener("click", async () => {
         console.warn("[LiveQuiz][Host] Initialize aborted because: lobby is already active");
         return;
     }
-    if (tabSelect.classList.contains("active") && !selectedQuizId) {
+    const isSelectTabActive = tabSelect?.classList.contains("active") ?? true;
+    const isCreateTabActive = tabCreate?.classList.contains("active") ?? false;
+
+    if (isSelectTabActive && !selectedQuizId) {
         console.warn("[LiveQuiz][Host] Initialize aborted because: no quiz selected");
-        alert("Please select a quiz before initializing a Game PIN.");
+        setSetupStatus("Please select a quiz before initializing a Game PIN.", "error");
+        setQuizResultsState("Select a saved quiz from this list before creating a PIN.", "error", { show: true });
         quizSearchInput?.focus();
         return;
     }
 
-    await enterFullscreen();
     isCreatingGame = true;
-    createBtn.disabled = true;
+    setCreateButtonLoading(true);
+    setSetupStatus("Checking quiz and creating your live session...");
 
     try {
         const hostUser = await ensureAnonAuth();
         let quizIdToStart = selectedQuizId;
 
         // Handle Manual Creation
-        if (tabCreate.classList.contains("active") && creationModeSelect.value === "manual") {
+        if (isCreateTabActive && creationModeSelect?.value === "manual") {
+            setSetupStatus("Saving your manual quiz before creating the PIN...");
             const savedManualQuiz = await saveManualQuizFromBuilder({ showStatus: true });
             if (!savedManualQuiz) {
                 console.warn("[LiveQuiz][Host] Initialize aborted because: manual quiz fields are incomplete");
+                setSetupStatus("Finish the manual quiz fields before creating a PIN.", "error");
                 return;
             }
             quizIdToStart = savedManualQuiz.id;
@@ -1262,10 +1564,11 @@ createBtn.addEventListener("click", async () => {
 
         if (!quizIdToStart) {
             console.warn("[LiveQuiz][Host] Initialize aborted because: no quiz selected or created");
-            alert("Please select or create a quiz first!");
+            setSetupStatus("Please select or create a quiz first.", "error");
             return;
         }
 
+        setSetupStatus("Verifying selected quiz...");
         const quizSnap = await Fire.getDoc(doc(db, "quizzes", quizIdToStart));
         if (!quizSnap.exists()) {
             throw new Error("Selected quiz was not found in Firestore.");
@@ -1277,9 +1580,10 @@ createBtn.addEventListener("click", async () => {
             throw new Error("Selected quiz has no questions.");
         }
 
-        const gameMode = modeSelect.value;
+        const gameMode = modeSelect?.value || "classic";
         const hostMode = document.getElementById("hostModeSelect")?.value || "classroom";
         console.info("[LiveQuiz][Host] Validation passed", { quizId: quizIdToStart, hostMode, gameMode });
+        setSetupStatus("Generating a unique Game PIN...");
         const { pin, pinRef } = await generateUniquePin();
         console.info("[LiveQuiz][Host] PIN generated", { pin });
         currentPin = pin;
@@ -1298,9 +1602,13 @@ createBtn.addEventListener("click", async () => {
         };
 
         console.info("[LiveQuiz][Host] Session write started", { gameId: currentGameId, pin });
+        setSetupStatus("Creating the live lobby...");
         await setDoc(gameRef, sessionData);
         await setDoc(pinRef, { gameId: currentGameId });
         console.info("[LiveQuiz][Host] Session write success", { gameId: currentGameId, pin });
+
+        // Persist to localStorage for recovery
+        saveHostSession(currentGameId, pin, quizIdToStart);
 
         const redirectTarget = buildLobbyUrl(currentGameId, pin);
         console.info("[LiveQuiz][Host] Redirect target", {
@@ -1311,7 +1619,8 @@ createBtn.addEventListener("click", async () => {
         console.info("[LiveQuiz][Host] Transitioning to lobby", { sessionId: currentGameId, pin });
         try {
             hasActiveLobby = true;
-            createBtn.disabled = true;
+            setSetupStatus("Game PIN created. Opening the host lobby...", "success");
+            setCreateButtonLoading(true, "Opening Lobby...");
             await transitionToLobbyPage(redirectTarget);
             return;
         } catch (transitionError) {
@@ -1328,16 +1637,19 @@ createBtn.addEventListener("click", async () => {
     } catch (error) {
         const message = showFirebaseError("Session write error", error);
         currentGameId = null;
+        hasActiveLobby = false;
+        setSetupStatus(message, "error");
         alert(`Could not initialize Game PIN.\n\n${message}`);
     } finally {
         isCreatingGame = false;
-        createBtn.disabled = hasActiveLobby;
+        setCreateButtonLoading(false);
+        if (hasActiveLobby && createBtn) createBtn.disabled = true;
     }
 });
 
 // Removed old listenToPlayers as it's merged into startLeaderboardListener
 
-startBtn.addEventListener("click", async () => {
+startBtn?.addEventListener("click", async () => {
     if (Object.keys(players).length === 0) return alert("Wait for players!");
     await enterFullscreen();
     console.info("[LiveQuiz][Host] hostMode", document.getElementById("hostModeSelect")?.value || currentQuiz?.hostMode || "");
@@ -1445,10 +1757,11 @@ function renderActiveQuestionFromSession(gameData) {
     }
     clearTimeout(window._autoAdvanceTimer);
 
-    showView("question");
-    qTitle.textContent = cleanText(q.question);
-    qCounter.textContent = `Question ${qIndex + 1} of ${currentQuiz.questions.length}`;
-    renderOptions(q.options);
+        showView("question");
+        if (hostLivePinEl) hostLivePinEl.textContent = currentPin || gameData.pin || "---";
+        qTitle.textContent = cleanText(q.question);
+        qCounter.textContent = `Question ${qIndex + 1} of ${currentQuiz.questions.length}`;
+        renderOptions(q.options);
 
     console.info("[LiveQuiz] Render active host question", {
         sessionId: currentGameId,
@@ -1488,6 +1801,7 @@ async function goToNextQuestion() {
     }
 
     showView("question");
+    if (hostLivePinEl) hostLivePinEl.textContent = currentPin || "---";
     nextBtn.style.display = "none";
     answerStats.style.display = "block";
 
@@ -1512,15 +1826,15 @@ async function goToNextQuestion() {
 
 function renderOptions(options) {
     optionsList.innerHTML = "";
-    const colors = ["var(--answer-purple)", "var(--answer-blue)", "var(--answer-orange)", "var(--answer-green)"];
+    const colors = ["purple", "blue", "orange", "green"];
     options.forEach((opt, i) => {
         const div = document.createElement("div");
-        div.className = "glass-card flex-center";
-        div.style.padding = "20px";
-        div.style.background = colors[i % 4];
-        div.style.fontSize = "1.5rem";
-        div.style.fontWeight = "800";
-        div.textContent = cleanText(opt);
+        div.className = `glass-card flex-center live-answer-card answer-${colors[i % 4]}`;
+        div.innerHTML = `
+            <span class="live-answer-number">${i + 1}</span>
+            <span class="live-answer-text">${escapeHtml(cleanText(opt))}</span>
+            <span class="live-answer-dot" aria-hidden="true"></span>
+        `;
         optionsList.appendChild(div);
     });
 }
@@ -1596,7 +1910,7 @@ async function revealAnswer() {
     window._autoAdvanceTimer = setTimeout(() => goToNextQuestion(), 4000);
 }
 
-nextBtn.addEventListener("click", () => {
+nextBtn?.addEventListener("click", () => {
     clearTimeout(window._autoAdvanceTimer);
     goToNextQuestion();
 });
@@ -1604,6 +1918,9 @@ nextBtn.addEventListener("click", () => {
 // -- 4. Podium Phase — Cinematic Camera Zoom ----------------------------------
 async function showPodium() {
     await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
+
+    // Game is over — clear the saved host session
+    clearHostSession();
 
     const pSnap = await getDocs(query(collection(db, "games", currentGameId, "players"), orderBy("score", "desc")));
     const leaderboard = [];

@@ -91,29 +91,29 @@
       height: 100dvh;
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
-      gap: 14px;
+      gap: 12px;
       overflow: hidden;
-      padding: 18px 36px 24px;
+      padding: 12px 24px 16px;
       animation: pageIn 420ms cubic-bezier(.2, .8, .2, 1) both;
     }
 
     .topbar,
     .dashboard {
-      width: min(1468px, 100%);
+      width: min(1500px, 100%);
       margin: 0 auto;
     }
 
     .topbar {
-      min-height: 84px;
+      min-height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 12px 20px;
+      gap: 12px;
+      padding: 8px 16px;
       border: 1px solid rgba(255, 255, 255, 0.13);
-      border-radius: 20px;
+      border-radius: 16px;
       background: rgba(7, 10, 35, 0.55);
-      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.28), var(--inner-light);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), var(--inner-light);
       backdrop-filter: blur(22px);
     }
 
@@ -221,12 +221,12 @@
 
     .primary-btn {
       width: 100%;
-      min-height: 68px;
+      min-height: 56px;
       padding: 0 24px;
       border-color: rgba(255, 255, 255, 0.24);
       border-radius: 14px;
       background: linear-gradient(120deg, #7925ff 0%, #6732ff 36%, #19b9f2 100%);
-      box-shadow: 0 18px 42px rgba(36, 182, 242, 0.22), 0 18px 48px rgba(124, 58, 237, 0.34), var(--inner-light);
+      box-shadow: 0 12px 28px rgba(36, 182, 242, 0.22), 0 12px 32px rgba(124, 58, 237, 0.34), var(--inner-light);
       font-size: 1.05rem;
       font-weight: 900;
       letter-spacing: 0.06em;
@@ -314,40 +314,41 @@
       min-height: 0;
       height: 100%;
       display: grid;
-      grid-template-columns: minmax(0, 1.42fr) minmax(420px, 1fr);
-      gap: 24px;
+      grid-template-columns: minmax(0, 1.4fr) minmax(380px, 1fr);
+      gap: 16px;
     }
 
     .panel {
       min-height: 0;
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 22px;
+      border-radius: 18px;
       background:
         linear-gradient(145deg, rgba(19, 20, 61, 0.78), rgba(4, 9, 34, 0.7)),
         rgba(5, 8, 30, 0.64);
       box-shadow: var(--shadow), var(--inner-light);
       backdrop-filter: blur(24px);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .left-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 38px 48px 28px;
+      gap: 12px;
+      padding: 20px 28px 16px;
     }
 
     .room-title {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 18px;
+      gap: 14px;
+      flex-shrink: 0;
     }
 
     .eyebrow {
-      margin: 0 0 14px;
+      margin: 0 0 6px;
       color: #19e7ff;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 900;
       letter-spacing: 0.18em;
     }
@@ -361,18 +362,18 @@
     h1 {
       margin-bottom: 0;
       color: #fffefa;
-      font-size: 3.75rem;
+      font-size: clamp(1.8rem, 4vw, 2.2rem);
       font-weight: 900;
-      line-height: 0.98;
+      line-height: 1.1;
       letter-spacing: 0;
     }
 
     .room-subtitle {
       max-width: 540px;
-      margin: 14px 0 0;
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 1.13rem;
-      line-height: 1.56;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
 
     .status-chip {
@@ -415,13 +416,14 @@
     .pin-section {
       position: relative;
       overflow: hidden;
-      padding: 23px 30px 18px;
+      padding: 14px 20px 12px;
       border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 17px;
+      border-radius: 14px;
       background:
         linear-gradient(115deg, rgba(117, 75, 255, 0.25), rgba(15, 24, 72, 0.7) 56%, rgba(34, 211, 238, 0.08)),
         rgba(255, 255, 255, 0.045);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 45px rgba(0, 0, 0, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(0, 0, 0, 0.18);
+      flex-shrink: 0;
     }
 
     .pin-section::after {
@@ -436,9 +438,9 @@
     .pin-label {
       position: relative;
       z-index: 1;
-      margin: 0 0 16px;
+      margin: 0 0 10px;
       color: #eeeaff;
-      font-size: 1.02rem;
+      font-size: 0.95rem;
       font-weight: 800;
     }
 
@@ -447,36 +449,37 @@
       z-index: 1;
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 26px;
+      gap: 14px;
     }
 
     .pin-digit {
-      height: 86px;
+      height: 60px;
       display: grid;
       place-items: center;
       border: 1px solid rgba(177, 145, 255, 0.48);
-      border-radius: 14px;
+      border-radius: 10px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.26), 0 0 28px rgba(139, 92, 246, 0.25);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.26), 0 0 16px rgba(139, 92, 246, 0.25);
       color: #ffffff;
-      font-size: 3.65rem;
+      font-size: 2.8rem;
       font-weight: 900;
       line-height: 1;
-      text-shadow: 0 0 22px rgba(192, 132, 252, 0.72);
+      text-shadow: 0 0 16px rgba(192, 132, 252, 0.72);
     }
 
     .live-stats {
       display: grid;
-      grid-template-columns: minmax(172px, 0.82fr) minmax(0, 1fr);
-      gap: 18px;
+      grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
+      gap: 14px;
       min-height: 0;
+      flex: 1;
     }
 
     .count-card,
     .players-card {
-      min-height: 196px;
+      min-height: 0;
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 17px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.052);
       box-shadow: var(--inner-light);
     }
@@ -484,35 +487,35 @@
     .count-card {
       display: grid;
       place-items: center;
-      padding: 20px;
+      padding: 16px 12px;
       text-align: center;
     }
 
     .count-card svg {
-      width: 34px;
-      height: 34px;
+      width: 28px;
+      height: 28px;
       color: var(--violet);
       stroke-width: 2.1;
     }
 
     .count-card strong {
       display: block;
-      margin: 10px 0 8px;
-      font-size: 4.6rem;
+      margin: 4px 0 2px;
+      font-size: 3.2rem;
       font-weight: 900;
-      line-height: 0.86;
+      line-height: 0.9;
     }
 
     .count-card span {
       color: var(--muted);
-      font-size: 0.98rem;
+      font-size: 0.85rem;
     }
 
     .players-card {
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 14px;
-      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
       overflow: hidden;
     }
 
@@ -521,19 +524,20 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .card-head h2 {
       margin: 0;
-      font-size: 1.02rem;
+      font-size: 0.95rem;
       font-weight: 900;
     }
 
     .card-head .status-chip {
-      min-height: 38px;
-      padding: 0 14px;
+      min-height: 32px;
+      padding: 0 12px;
       background: rgba(37, 50, 133, 0.66);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
     }
 
     .card-head .status-chip::before {
@@ -542,9 +546,11 @@
 
     .player-list {
       min-height: 0;
-      display: grid;
-      gap: 10px;
-      overflow: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
       padding-right: 2px;
     }
 
@@ -552,23 +558,24 @@
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 13px 16px;
+      gap: 12px;
+      padding: 10px 14px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.04);
+      flex-shrink: 0;
     }
 
     .avatar {
-      width: 54px;
-      height: 54px;
+      width: 44px;
+      height: 44px;
       display: grid;
       place-items: center;
       flex: 0 0 auto;
-      border-radius: 15px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #823bff, #5147f5);
-      box-shadow: 0 14px 32px rgba(73, 56, 245, 0.28);
-      font-size: 1.05rem;
+      box-shadow: 0 10px 24px rgba(73, 56, 245, 0.28);
+      font-size: 0.95rem;
       font-weight: 900;
     }
 
@@ -580,6 +587,7 @@
       display: block;
       overflow: hidden;
       color: #ffffff;
+      font-size: 0.9rem;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -593,14 +601,16 @@
     }
 
     .controls {
-      display: grid;
-      gap: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .secondary-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
 
     .wa-btn svg {
@@ -616,15 +626,15 @@
 
     .session-info {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
-      gap: 26px;
-      font-size: 0.88rem;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+      gap: 16px;
+      font-size: 0.8rem;
     }
 
     .session-info span {
       min-width: 0;
       overflow: hidden;
-      padding: 12px 20px;
+      padding: 8px 16px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.04);
@@ -633,10 +643,7 @@
     }
 
     .right-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      padding: 24px 22px 26px;
+      padding: 20px;
     }
 
     .student-head {
@@ -644,22 +651,23 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 14px;
-      padding: 4px 2px 0 4px;
+      padding: 0 2px;
+      flex-shrink: 0;
     }
 
     .student-head h2 {
       margin: 0;
       color: #ffffff;
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 900;
       line-height: 1.1;
       letter-spacing: 0;
     }
 
     .student-head p {
-      margin: 6px 0 0;
+      margin: 4px 0 0;
       color: var(--muted);
-      font-size: 0.96rem;
+      font-size: 0.9rem;
     }
 
     .student-list {
@@ -667,36 +675,38 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       overflow: auto;
       padding: 0 0 2px;
+      margin-top: 12px;
     }
 
     .student-row {
-      min-height: 82px;
+      min-height: 64px;
       display: grid;
-      grid-template-columns: 54px minmax(0, 1fr) auto 11px;
+      grid-template-columns: 46px minmax(0, 1fr) auto 11px;
       align-items: center;
-      gap: 16px;
-      padding: 12px 14px;
+      gap: 12px;
+      padding: 10px 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
+      border-radius: 14px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.032)),
         rgba(23, 21, 62, 0.68);
-      box-shadow: var(--inner-light), 0 14px 34px rgba(0, 0, 0, 0.18);
+      box-shadow: var(--inner-light), 0 8px 24px rgba(0, 0, 0, 0.18);
+      flex-shrink: 0;
     }
 
     .student-avatar {
-      width: 52px;
-      height: 52px;
+      width: 46px;
+      height: 46px;
       display: grid;
       place-items: center;
       border-radius: 50%;
       background: var(--avatar-grad, linear-gradient(135deg, #7c3aed, #4f46e5));
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
       color: #ffffff;
-      font-size: 1.36rem;
+      font-size: 1.15rem;
       font-weight: 900;
       line-height: 1;
     }
@@ -709,7 +719,7 @@
       display: block;
       overflow: hidden;
       color: #ffffff;
-      font-size: 0.98rem;
+      font-size: 0.92rem;
       font-weight: 900;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -717,32 +727,33 @@
 
     .student-meta small {
       display: block;
-      margin-top: 4px;
-      font-size: 0.83rem;
+      margin-top: 2px;
+      font-size: 0.8rem;
       font-weight: 600;
     }
 
     .student-time {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
       white-space: nowrap;
     }
 
     .online-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
     }
 
     .empty-students {
-      min-height: 132px;
+      min-height: 110px;
       margin-top: auto;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: 20px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.04);
       text-align: center;
+      flex-shrink: 0;
     }
 
     .empty-students svg {
@@ -813,190 +824,80 @@
     @media (max-height: 860px) and (min-width: 921px) {
       .control-room {
         gap: 12px;
-        padding: 12px 28px 14px;
+        padding: 12px 24px 14px;
       }
 
       .topbar {
-        min-height: 68px;
-        padding: 8px 14px;
+        min-height: 56px;
+        padding: 6px 12px;
       }
 
       .topbar .icon-btn {
-        width: 48px;
-        min-height: 48px;
-        border-radius: 15px;
+        width: 44px;
+        min-height: 44px;
+        border-radius: 12px;
       }
 
       .live-pill,
       .language-pill {
-        min-height: 44px;
-        padding: 0 15px;
+        min-height: 40px;
+        padding: 0 12px;
       }
 
       .dashboard {
-        gap: 16px;
-      }
-
-      .left-panel {
-        gap: 11px;
-        padding: 22px 30px 18px;
-      }
-
-      .eyebrow {
-        margin-bottom: 8px;
-        font-size: 0.7rem;
-      }
-
-      h1 {
-        font-size: 2.8rem;
-      }
-
-      .room-subtitle {
-        margin-top: 8px;
-        font-size: 0.98rem;
-        line-height: 1.42;
-      }
-
-      .status-chip {
-        min-height: 36px;
-        padding: 0 12px;
-        font-size: 0.74rem;
-      }
-
-      .pin-section {
-        padding: 15px 20px 14px;
-      }
-
-      .pin-label {
-        margin-bottom: 10px;
-        font-size: 0.92rem;
-      }
-
-      .pin-digits {
         gap: 14px;
       }
 
+      .left-panel {
+        gap: 10px;
+        padding: 16px 20px 14px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .pin-section {
+        padding: 12px 16px;
+      }
+
       .pin-digit {
-        height: 58px;
-        border-radius: 12px;
-        font-size: 2.75rem;
+        height: 48px;
+        font-size: 2.2rem;
       }
 
       .live-stats {
         gap: 12px;
       }
 
-      .count-card,
-      .players-card {
-        min-height: 138px;
-      }
-
       .count-card {
-        padding: 12px;
-      }
-
-      .count-card svg {
-        width: 26px;
-        height: 26px;
+        padding: 10px;
       }
 
       .count-card strong {
-        margin: 6px 0 4px;
-        font-size: 3.2rem;
+        font-size: 2.4rem;
       }
 
       .players-card {
-        gap: 8px;
-        padding: 12px;
-      }
-
-      .avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
+        padding: 10px;
       }
 
       .player-row {
-        padding: 9px 12px;
+        padding: 8px 10px;
       }
-
-      .controls {
-        gap: 10px;
+      
+      .avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
       }
 
       .primary-btn {
-        min-height: 50px;
-        border-radius: 12px;
-        font-size: 0.94rem;
-      }
-
-      .ghost-btn {
-        min-height: 44px;
-        gap: 8px;
-        padding: 0 10px;
-        border-radius: 12px;
-        font-size: 0.86rem;
-      }
-
-      .ghost-btn svg,
-      .primary-btn svg,
-      .icon-btn svg,
-      .language-pill svg {
-        width: 18px;
-        height: 18px;
-      }
-
-      .session-info {
-        gap: 12px;
-        font-size: 0.76rem;
-      }
-
-      .session-info span {
-        padding: 9px 13px;
+        min-height: 48px;
       }
 
       .right-panel {
-        gap: 14px;
-        padding: 20px 18px 18px;
-      }
-
-      .student-head h2 {
-        font-size: 1.45rem;
-      }
-
-      .student-head p {
-        margin-top: 4px;
-        font-size: 0.86rem;
-      }
-
-      .student-list {
-        gap: 10px;
-      }
-
-      .student-row {
-        min-height: 64px;
-        grid-template-columns: 42px minmax(0, 1fr) auto 9px;
-        gap: 12px;
-        padding: 9px 12px;
-      }
-
-      .student-avatar {
-        width: 42px;
-        height: 42px;
-        font-size: 1.05rem;
-      }
-
-      .student-meta strong {
-        font-size: 0.9rem;
-      }
-
-      .student-meta small,
-      .student-time {
-        font-size: 0.74rem;
-      }
-
-      .empty-students {
-        min-height: 96px;
+        padding: 16px;
       }
     }
 
@@ -1435,7 +1336,7 @@
     </section>
   </main>
 
-  <script type="module" src="./host-lobby.js"></script>
+  <script type="module" src="./host-lobby.js?v=ui-nav-fix-20260510"></script>
 </body>
 
 </html>
