@@ -89,26 +89,54 @@ function renderStudentTimer(remainingMs, durationSec) {
 
 function startStudentTimer(game) {
     const durationSec = normalizeDurationSec(game.questionDurationSec);
+    const totalMs = durationSec * 1000;
     const normalizedStartMs = normalizeMillis(game.questionStartMs);
     const hasValidStart = Number.isFinite(normalizedStartMs);
-    const startMs = hasValidStart ? normalizedStartMs : Date.now();
     const timerKey = getStudentTimerKey(game);
 
     if (timerInterval && activeTimerKey === timerKey) return;
 
-    if (!hasValidStart) {
+    // Determine startMs with clock-skew protection.
+    // The host writes questionStartMs using its own Date.now().
+    // If the student phone's clock differs from the host PC,
+    // the computed remaining time will be wrong (often instantly 0).
+    // Fix: if the host timestamp would produce an already-expired or
+    // unreasonably long timer, fall back to a local countdown.
+    let startMs;
+    if (hasValidStart) {
+        const hostElapsed = Date.now() - normalizedStartMs;
+        const hostRemaining = totalMs - hostElapsed;
+        if (hostRemaining > 0 && hostRemaining <= totalMs) {
+            // Host timestamp is sane — use it
+            startMs = normalizedStartMs;
+        } else {
+            // Clock skew detected: remaining time is negative (phone clock ahead)
+            // or exceeds total duration (phone clock behind).
+            // Fall back to local countdown from now.
+            console.warn("[LiveQuiz][StudentTimer] Clock skew detected; using local countdown.", {
+                qIndex: game.qIndex,
+                hostStartMs: normalizedStartMs,
+                studentNow: Date.now(),
+                hostElapsed,
+                hostRemaining,
+                durationSec
+            });
+            startMs = Date.now();
+        }
+    } else {
         console.warn("[LiveQuiz][StudentTimer] Missing or invalid questionStartMs; using full duration fallback.", {
             qIndex: game.qIndex,
             questionStartMs: game.questionStartMs,
             questionDurationSec: game.questionDurationSec
         });
+        startMs = Date.now();
     }
 
     stopStudentTimer();
     activeTimerKey = timerKey;
 
     const tick = () => {
-        const remainingMs = (durationSec * 1000) - (Date.now() - startMs);
+        const remainingMs = totalMs - (Date.now() - startMs);
         renderStudentTimer(remainingMs, durationSec);
 
         if (remainingMs <= 0 && timerInterval) {
@@ -123,8 +151,7 @@ function startStudentTimer(game) {
 
 function getStudentTimerKey(game) {
     const durationSec = normalizeDurationSec(game.questionDurationSec);
-    const normalizedStartMs = normalizeMillis(game.questionStartMs);
-    return `${game.qIndex}:${Number.isFinite(normalizedStartMs) ? normalizedStartMs : "fallback"}:${durationSec}`;
+    return `${game.qIndex}:${durationSec}`;
 }
 
 // DOM
