@@ -17,12 +17,114 @@ let hostMode = "classroom"; // "classroom" or "distance"
 let currentPin = "";
 let currentQuizData = null;
 let selectedAnswerIndex = -1;
-let timerRAF = null;
+let timerInterval = null;
+let activeTimerKey = "";
 let latestGameData = null;
 let isJoining = false;
+const TIMER_RADIUS = 44;
+const TIMER_CIRCUMFERENCE = 2 * Math.PI * TIMER_RADIUS;
+const DEFAULT_QUESTION_DURATION_SEC = 20;
 
 function isJoinableSessionStatus(status) {
     return status === GameStatus.LOBBY || status === GameStatus.QUESTION || status === GameStatus.REVEAL;
+}
+
+function normalizeMillis(value) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+
+    if (typeof value === "string") {
+        const parsed = Number(value.trim());
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    if (value && typeof value.toMillis === "function") {
+        try {
+            const millis = value.toMillis();
+            return Number.isFinite(millis) ? millis : null;
+        } catch (error) {
+            console.warn("[LiveQuiz][StudentTimer] Unable to convert Timestamp with toMillis()", error);
+            return null;
+        }
+    }
+
+    if (value && typeof value === "object") {
+        const seconds = Number(value.seconds ?? value._seconds);
+        const nanoseconds = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+        if (Number.isFinite(seconds)) {
+            return (seconds * 1000) + (Number.isFinite(nanoseconds) ? Math.floor(nanoseconds / 1e6) : 0);
+        }
+    }
+
+    return null;
+}
+
+function normalizeDurationSec(value) {
+    const duration = Number(value);
+    return Number.isFinite(duration) && duration > 0 ? duration : DEFAULT_QUESTION_DURATION_SEC;
+}
+
+function clamp01(value) {
+    return Math.min(1, Math.max(0, value));
+}
+
+function stopStudentTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    activeTimerKey = "";
+}
+
+function renderStudentTimer(remainingMs, durationSec) {
+    const totalMs = Math.max(1, durationSec * 1000);
+    const safeRemainingMs = Math.min(totalMs, Math.max(0, remainingMs));
+    const elapsedProgress = clamp01(1 - (safeRemainingMs / totalMs));
+    const remainingSeconds = Math.ceil(safeRemainingMs / 1000);
+
+    timerText.textContent = remainingSeconds;
+    timerCircle.style.animation = "none";
+    timerCircle.style.strokeDasharray = TIMER_CIRCUMFERENCE.toString();
+    timerCircle.style.strokeDashoffset = (TIMER_CIRCUMFERENCE * elapsedProgress).toString();
+}
+
+function startStudentTimer(game) {
+    const durationSec = normalizeDurationSec(game.questionDurationSec);
+    const normalizedStartMs = normalizeMillis(game.questionStartMs);
+    const hasValidStart = Number.isFinite(normalizedStartMs);
+    const startMs = hasValidStart ? normalizedStartMs : Date.now();
+    const timerKey = getStudentTimerKey(game);
+
+    if (timerInterval && activeTimerKey === timerKey) return;
+
+    if (!hasValidStart) {
+        console.warn("[LiveQuiz][StudentTimer] Missing or invalid questionStartMs; using full duration fallback.", {
+            qIndex: game.qIndex,
+            questionStartMs: game.questionStartMs,
+            questionDurationSec: game.questionDurationSec
+        });
+    }
+
+    stopStudentTimer();
+    activeTimerKey = timerKey;
+
+    const tick = () => {
+        const remainingMs = (durationSec * 1000) - (Date.now() - startMs);
+        renderStudentTimer(remainingMs, durationSec);
+
+        if (remainingMs <= 0 && timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    };
+
+    tick();
+    timerInterval = setInterval(tick, 250);
+}
+
+function getStudentTimerKey(game) {
+    const durationSec = normalizeDurationSec(game.questionDurationSec);
+    const normalizedStartMs = normalizeMillis(game.questionStartMs);
+    return `${game.qIndex}:${Number.isFinite(normalizedStartMs) ? normalizedStartMs : "fallback"}:${durationSec}`;
 }
 
 // DOM
@@ -243,6 +345,7 @@ function startListening() {
 
         switch (game.status) {
             case GameStatus.LOBBY:
+                stopStudentTimer();
                 showScreen("lobby");
                 break;
             case GameStatus.QUESTION:
@@ -251,6 +354,8 @@ function startListening() {
                     hasAnswered = false;
                     selectedAnswerIndex = -1;
                     prepareQuestion(game);
+                } else if (activeTimerKey !== getStudentTimerKey(game)) {
+                    startStudentTimer(game);
                 }
                 break;
             case GameStatus.REVEAL:
@@ -259,10 +364,12 @@ function startListening() {
                 }
                 break;
             case GameStatus.FINISHED:
+                stopStudentTimer();
                 showFinalResults();
                 break;
             case "ended":
             case "cancelled":
+                stopStudentTimer();
                 joinStatus.textContent = "This game has ended.";
                 showScreen("join");
                 break;
@@ -292,28 +399,7 @@ async function prepareQuestion(game) {
     answeringTip.style.display = "flex";
     lockedFooter.style.display = "none";
 
-    // Timer setup
-    const duration = game.questionDurationSec;
-    const start = game.questionStartMs;
-    const circumference = 2 * Math.PI * 44; // r=44
-    timerCircle.style.strokeDasharray = circumference;
-    timerCircle.style.strokeDashoffset = "0";
-    timerText.textContent = duration;
-
-    if (timerRAF) cancelAnimationFrame(timerRAF);
-
-    const updateTimer = () => {
-        const elapsed = Date.now() - start;
-        const remaining = Math.max(0, (duration * 1000) - elapsed);
-        const secs = Math.ceil(remaining / 1000);
-        timerText.textContent = secs;
-
-        const progress = 1 - (remaining / (duration * 1000));
-        timerCircle.style.strokeDashoffset = (circumference * progress).toString();
-
-        if (remaining > 0) timerRAF = requestAnimationFrame(updateTimer);
-    };
-    timerRAF = requestAnimationFrame(updateTimer);
+    startStudentTimer(game);
 
     // Mode-specific rendering
     if (hostMode === "distance") {
