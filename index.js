@@ -1,4 +1,4 @@
-import { bindExitFullscreenButtons, enterFullscreen } from "./fullscreen.js";
+import { bindExitFullscreenButtons } from "./fullscreen.js";
 
 const appLinks = document.querySelectorAll("[data-app-route]");
 let appFrame = null;
@@ -24,9 +24,8 @@ function openAppRoute(url) {
 }
 
 appLinks.forEach((link) => {
-    link.addEventListener("click", async (event) => {
+    link.addEventListener("click", (event) => {
         event.preventDefault();
-        await enterFullscreen();
         openAppRoute(link.href);
     });
 });
