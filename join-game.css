@@ -32,7 +32,7 @@ body{padding:0;margin:0;display:flex;align-items:center;justify-content:center;o
 .timer-ring{width:90px;height:90px;position:relative;display:flex;align-items:center;justify-content:center;}
 .timer-ring svg{position:absolute;width:100%;height:100%;transform:rotate(-90deg);}
 .timer-ring .ring-bg{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:6;}
-.timer-ring .ring-fg{fill:none;stroke:url(#timerGrad);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 250ms linear;animation:none;filter:drop-shadow(0 0 6px rgba(168,85,247,0.6));}
+.timer-ring .ring-fg{fill:none;stroke:#22d3ee;stroke:url(#timerGrad);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 250ms linear;animation:none;filter:drop-shadow(0 0 6px rgba(168,85,247,0.6));}
 .timer-text{font-size:1.8rem;font-weight:900;color:white;z-index:1;}
 .timer-label{font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.5);position:absolute;bottom:16px;text-transform:uppercase;}
 
@@ -790,17 +790,63 @@ body {
     padding: clamp(2px, 1dvh, 8px) 0;
   }
 
-  .timer-ring {
+  .student-game-view .student-timer {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 6;
+    grid-row: 3;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: clamp(76px, 15dvh, 100px);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .student-game-view .student-timer .timer-ring {
     width: clamp(68px, 13dvh, 90px);
     height: clamp(68px, 13dvh, 90px);
+    min-width: 68px;
+    min-height: 68px;
+    display: flex;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 7;
+    overflow: visible;
   }
 
-  .timer-text {
+  .student-game-view .student-timer svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .student-game-view .student-timer .ring-bg {
+    stroke: rgba(255,255,255,0.28);
+  }
+
+  .student-game-view .student-timer .ring-fg {
+    stroke: #22d3ee;
+    stroke: url(#timerGrad);
+    opacity: 1;
+  }
+
+  .student-game-view .student-timer .timer-text {
     font-size: clamp(1.35rem, 3.4dvh, 1.8rem);
+    color: #fff;
+    opacity: 1;
+    position: relative;
+    z-index: 8;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.55);
   }
 
-  .timer-label {
+  .student-game-view .student-timer .timer-label {
     bottom: clamp(10px, 2.1dvh, 16px);
+    color: rgba(255,255,255,0.72);
+    z-index: 8;
   }
 
   .instruction-text {
@@ -942,16 +988,22 @@ body {
     display: none;
   }
 
-  .timer-ring {
-    width: 62px;
-    height: 62px;
+  .student-game-view .student-timer {
+    min-height: 66px;
   }
 
-  .timer-text {
+  .student-game-view .student-timer .timer-ring {
+    width: 62px;
+    height: 62px;
+    min-width: 62px;
+    min-height: 62px;
+  }
+
+  .student-game-view .student-timer .timer-text {
     font-size: 1.28rem;
   }
 
-  .timer-label {
+  .student-game-view .student-timer .timer-label {
     bottom: 8px;
     font-size: 0.52rem;
   }
