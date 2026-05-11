@@ -736,15 +736,23 @@ body {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    /* Prevent vertical centering from clipping top/bottom on mobile */
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow-y: auto;
+    height: 100%;
   }
 
   .student-wrap {
+    height: 100vh; /* fallback */
     height: 100dvh;
+    min-height: 100vh; /* fallback */
     min-height: 100svh;
-    max-height: 100dvh;
+    max-height: none;
   }
 
   .screen {
+    height: 100vh; /* fallback */
     height: 100dvh;
     min-height: 0;
     padding:
@@ -787,6 +795,7 @@ body {
   }
 
   .timer-ring-wrap {
+    padding: 4px 0; /* fallback */
     padding: clamp(2px, 1dvh, 8px) 0;
   }
 
@@ -800,17 +809,22 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
+    min-height: 76px; /* fallback for browsers without dvh */
     min-height: clamp(76px, 15dvh, 100px);
     overflow: visible;
     pointer-events: none;
   }
 
   .student-game-view .student-timer .timer-ring {
+    width: 76px; /* fallback */
     width: clamp(68px, 13dvh, 90px);
+    height: 76px; /* fallback */
     height: clamp(68px, 13dvh, 90px);
     min-width: 68px;
     min-height: 68px;
-    display: flex;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
     position: relative;
     z-index: 7;
@@ -818,34 +832,42 @@ body {
   }
 
   .student-game-view .student-timer svg {
-    display: block;
-    width: 100%;
-    height: 100%;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
     overflow: visible;
+    min-width: 68px;
+    min-height: 68px;
   }
 
   .student-game-view .student-timer .ring-bg {
-    stroke: rgba(255,255,255,0.28);
+    stroke: rgba(255,255,255,0.28) !important;
+    stroke-width: 6;
   }
 
   .student-game-view .student-timer .ring-fg {
-    stroke: #22d3ee;
-    stroke: url(#timerGrad);
-    opacity: 1;
+    /* Solid fallback first, then gradient override */
+    stroke: #22d3ee !important;
+    opacity: 1 !important;
+    stroke-width: 6;
   }
 
   .student-game-view .student-timer .timer-text {
+    display: block !important;
+    font-size: 1.5rem; /* fallback */
     font-size: clamp(1.35rem, 3.4dvh, 1.8rem);
-    color: #fff;
-    opacity: 1;
+    color: #fff !important;
+    opacity: 1 !important;
     position: relative;
     z-index: 8;
     text-shadow: 0 2px 12px rgba(0,0,0,0.55);
   }
 
   .student-game-view .student-timer .timer-label {
+    display: block !important;
+    bottom: 12px; /* fallback */
     bottom: clamp(10px, 2.1dvh, 16px);
-    color: rgba(255,255,255,0.72);
+    color: rgba(255,255,255,0.72) !important;
     z-index: 8;
   }
 
