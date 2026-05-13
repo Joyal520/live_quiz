@@ -65,6 +65,12 @@
       flex-shrink: 0;
     }
 
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .brand {
       display: flex;
       align-items: center;
@@ -92,6 +98,121 @@
     }
     .language-pill:hover {
       background: rgba(255, 255, 255, 0.1);
+    }
+
+    .quit-app-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.42);
+      background: rgba(127, 29, 29, 0.14);
+      color: rgba(255, 255, 255, 0.92);
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 30px rgba(127, 29, 29, 0.14);
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .quit-app-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(248, 113, 113, 0.74);
+      background: rgba(127, 29, 29, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 0 28px rgba(248, 113, 113, 0.22);
+    }
+
+    .premium-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(3, 5, 18, 0.58);
+      backdrop-filter: blur(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .premium-modal-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .premium-modal {
+      width: min(440px, 100%);
+      border-radius: 24px;
+      border: 1px solid rgba(129, 140, 248, 0.38);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(31, 19, 69, 0.82));
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45), 0 0 44px rgba(96, 165, 250, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      padding: 28px;
+      text-align: left;
+      transform: translateY(12px) scale(0.96);
+      transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .premium-modal-overlay.is-visible .premium-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .premium-modal h2 {
+      margin: 0 0 10px;
+      font-size: 1.45rem;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .premium-modal p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 1rem;
+      line-height: 1.55;
+      font-weight: 600;
+    }
+
+    .premium-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .premium-modal-btn {
+      min-width: 104px;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      color: #fff;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .premium-modal-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .premium-modal-btn.secondary {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .premium-modal-btn.primary {
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.28);
+    }
+
+    .premium-modal-btn.danger {
+      background: linear-gradient(135deg, #dc2626, #9333ea);
+      box-shadow: 0 14px 30px rgba(220, 38, 38, 0.24);
     }
 
     /* Hero */
@@ -385,7 +506,7 @@
       }
 
       .top-nav {
-        justify-content: center;
+        justify-content: space-between;
         height: 70px;
       }
 
@@ -395,6 +516,28 @@
 
       .language-pill {
         display: none;
+      }
+
+      .nav-actions {
+        gap: 8px;
+      }
+
+      .quit-app-btn {
+        min-height: 38px;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+      }
+
+      .premium-modal {
+        padding: 24px;
+      }
+
+      .premium-modal-actions {
+        flex-direction: column-reverse;
+      }
+
+      .premium-modal-btn {
+        width: 100%;
       }
 
       .hero-section {
@@ -554,15 +697,18 @@
     <header class="top-nav">
       <a href="index.html" class="brand">EdTechra</a>
       <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
-      <div class="language-pill">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M2 12h20"/>
-          <path d="M12 2a15 15 0 0 1 0 20"/>
-          <path d="M12 2a15 15 0 0 0 0 20"/>
-        </svg>
-        English
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m6 9 6 6 6-6"/></svg>
+      <div class="nav-actions">
+        <button type="button" class="quit-app-btn" id="quitAppBtn">Quit App</button>
+        <div class="language-pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20"/>
+            <path d="M12 2a15 15 0 0 1 0 20"/>
+            <path d="M12 2a15 15 0 0 0 0 20"/>
+          </svg>
+          English
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
       </div>
     </header>
 
@@ -649,6 +795,14 @@
       Safe. Secure. Classroom Ready.
     </div>
   </main>
+  <script>
+    window.LiveQuizSupabase = {
+      url: "https://scwvbyfnnufnlimbswnk.supabase.co",
+      anonKey: "sb_publishable_C2V14zNYsM-H5jtRZOQahw_yxdhpV9z"
+    };
+
+    console.log("LiveQuiz Supabase config ready");
+  </script>
   <script type="module" src="index.js"></script>
 </body>
 </html>

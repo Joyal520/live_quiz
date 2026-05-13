@@ -1,5 +1,7 @@
 import { db, ensureAnonAuth, TS, Fire, GameStatus, calculatePoints } from "./firebase.js";
+import { syncFinalScoresToEdectra } from "./edectra-supabase-sync.js";
 import { bindExitFullscreenButtons, enterFullscreen } from "./fullscreen.js";
+import { clearForceHomepageNavigation, clearHomeNavigationState, goHomeSafely, isForceHomepageNavigation } from "./navigation.js";
 const { doc, setDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, writeBatch, deleteDoc } = Fire;
 
 // Helper: strip markdown bold/italic markers from text
@@ -150,7 +152,11 @@ function isLiveSessionStatus(status) {
 }
 
 function isEndedSessionStatus(status) {
-    return status === GameStatus.FINISHED || status === "ended" || status === "cancelled";
+    return status === GameStatus.FINISHED || status === "ended" || status === "reset" || status === "closed" || status === "cancelled";
+}
+
+function isValidSessionStatus(status) {
+    return [GameStatus.LOBBY, GameStatus.QUESTION, GameStatus.REVEAL, GameStatus.FINISHED, "ended", "reset", "closed", "cancelled"].includes(status);
 }
 
 let lastHostFallbackReason = "";
@@ -215,6 +221,14 @@ function clearHostSession() {
     try {
         localStorage.removeItem(HOST_SESSION_KEY);
     } catch { /* ignore */ }
+}
+
+function clearHostRouteSessionState() {
+    clearHostSession();
+    clearHomeNavigationState();
+    staleHostSessionForReset = null;
+    hasActiveLobby = false;
+    isCreatingGame = false;
 }
 
 function getKnownHostSession() {
@@ -286,6 +300,8 @@ async function resetHostSession(options = {}) {
         clearInterval(timerInterval);
         timerInterval = null;
     }
+    stopAllBg(false);
+    clearQuizAmbienceState();
 
     if (redirect) {
         window.location.href = "./host.html";
@@ -304,18 +320,16 @@ function ensureResetSessionAction() {
     button.id = "resetHostSessionBtn";
     button.type = "button";
     button.className = "btn-secondary reset-host-session-control";
-    button.textContent = "End / Reset Session";
+    button.textContent = "End Session";
     button.addEventListener("click", () => resetHostSession());
     document.body.appendChild(button);
 }
 
 function handleLiveQuizBackNavigation() {
-    if (window.history.length > 1) {
-        window.history.back();
-        return;
-    }
-
-    window.location.href = "./index.html";
+    stopAllBg(false);
+    clearQuizAmbienceState();
+    clearHostRouteSessionState();
+    goHomeSafely();
 }
 
 // -- Audio ---------------------------------------------------------------------
@@ -330,13 +344,132 @@ const sounds = {
 sounds.lobby.loop = true;
 sounds.game.loop = true;
 
+const QUIZ_AMBIENCE_TRACKS = {
+    A: "sound/ambient-a.mp3",
+    B: "sound/ambient-b.mp3"
+};
+const LAST_AMBIENCE_KEY = "lastQuizAmbience";
+const CURRENT_AMBIENCE_KEY = "currentQuizAmbience";
+const PENDING_AMBIENCE_KEY = "pendingQuizAmbience";
+const SOUND_PREF_KEY = "edtechraSound";
+const AMBIENCE_TARGET_VOLUME = 0.1;
+let quizAmbienceAudio = null;
+let quizAmbienceFadeTimer = null;
+let activeQuizAmbienceTrack = "";
+
+function isSoundEnabled() {
+    try {
+        return localStorage.getItem(SOUND_PREF_KEY) !== "off";
+    } catch {
+        return true;
+    }
+}
+
+function resolveQuizAmbienceTrack({ alternate = false } = {}) {
+    try {
+        const pendingTrack = sessionStorage.getItem(PENDING_AMBIENCE_KEY);
+        if (pendingTrack && QUIZ_AMBIENCE_TRACKS[pendingTrack]) {
+            sessionStorage.removeItem(PENDING_AMBIENCE_KEY);
+            sessionStorage.setItem(CURRENT_AMBIENCE_KEY, pendingTrack);
+            return pendingTrack;
+        }
+
+        const currentTrack = sessionStorage.getItem(CURRENT_AMBIENCE_KEY);
+        if (!alternate && currentTrack && QUIZ_AMBIENCE_TRACKS[currentTrack]) {
+            return currentTrack;
+        }
+
+        const previousTrack = localStorage.getItem(LAST_AMBIENCE_KEY) || "A";
+        const nextTrack = previousTrack === "A" ? "B" : "A";
+        localStorage.setItem(LAST_AMBIENCE_KEY, nextTrack);
+        sessionStorage.setItem(CURRENT_AMBIENCE_KEY, nextTrack);
+        return nextTrack;
+    } catch (error) {
+        console.warn("[LiveQuiz][Host] Could not resolve quiz ambience", error);
+        return "A";
+    }
+}
+
+function stopQuizAmbience() {
+    if (quizAmbienceFadeTimer) {
+        clearInterval(quizAmbienceFadeTimer);
+        quizAmbienceFadeTimer = null;
+    }
+
+    if (quizAmbienceAudio) {
+        quizAmbienceAudio.pause();
+        quizAmbienceAudio.currentTime = 0;
+    }
+
+    activeQuizAmbienceTrack = "";
+}
+
+function clearQuizAmbienceState() {
+    try {
+        sessionStorage.removeItem(PENDING_AMBIENCE_KEY);
+        sessionStorage.removeItem(CURRENT_AMBIENCE_KEY);
+    } catch {
+        // Storage can be unavailable in restrictive browser modes.
+    }
+}
+
+function startQuizAmbience(options = {}) {
+    if (!isSoundEnabled()) {
+        stopQuizAmbience();
+        return;
+    }
+
+    const track = resolveQuizAmbienceTrack(options);
+    const src = QUIZ_AMBIENCE_TRACKS[track];
+    if (!src) return;
+
+    sounds.game.pause();
+    sounds.game.currentTime = 0;
+
+    if (quizAmbienceAudio && activeQuizAmbienceTrack !== track) {
+        stopQuizAmbience();
+    }
+
+    if (!quizAmbienceAudio || activeQuizAmbienceTrack !== track) {
+        quizAmbienceAudio = new Audio(src);
+        quizAmbienceAudio.loop = true;
+        quizAmbienceAudio.volume = 0;
+        activeQuizAmbienceTrack = track;
+    }
+
+    if (!quizAmbienceAudio.paused) return;
+
+    quizAmbienceAudio.volume = 0;
+    quizAmbienceAudio.play()
+        .then(() => {
+            if (quizAmbienceFadeTimer) clearInterval(quizAmbienceFadeTimer);
+            quizAmbienceFadeTimer = setInterval(() => {
+                if (!quizAmbienceAudio) return;
+                const nextVolume = Math.min(AMBIENCE_TARGET_VOLUME, quizAmbienceAudio.volume + 0.01);
+                quizAmbienceAudio.volume = nextVolume;
+                if (nextVolume >= AMBIENCE_TARGET_VOLUME) {
+                    clearInterval(quizAmbienceFadeTimer);
+                    quizAmbienceFadeTimer = null;
+                }
+            }, 120);
+        })
+        .catch((error) => {
+            console.warn("[LiveQuiz][Host] Quiz ambience playback blocked", error);
+        });
+}
+
 function stopAllBg(keepGameMusic = false) {
     sounds.lobby.pause(); sounds.lobby.currentTime = 0;
     if (!keepGameMusic) {
         sounds.game.pause(); sounds.game.currentTime = 0;
+        stopQuizAmbience();
     }
     sounds.podium.pause();
 }
+
+window.addEventListener("pagehide", () => {
+    stopQuizAmbience();
+});
 
 // -- DOM -----------------------------------------------------------------------
 const views = {
@@ -353,6 +486,7 @@ const selectedQuizTitle = document.getElementById("selectedQuizTitle");
 const clearQuizBtn = document.getElementById("clearQuizBtn");
 const modeSelect = document.getElementById("modeSelect");
 const createBtn = document.getElementById("createBtn");
+const createBtnWrapper = createBtn?.closest(".cta-wrapper");
 const lobbyPin = document.getElementById("lobbyPin");
 const playerCountEl = document.getElementById("playerCount");
 const playerListEl = document.getElementById("playerList");
@@ -369,7 +503,11 @@ const confettiCanvas = document.getElementById("confetti-canvas");
 
 document.body.dataset.hostView = "setup";
 document.querySelectorAll("[data-live-back]").forEach((button) => {
-    button.addEventListener("click", handleLiveQuizBackNavigation);
+    button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handleLiveQuizBackNavigation();
+    });
 });
 
 let hostLoadingEl = null;
@@ -912,6 +1050,9 @@ function renderQuizResults(filter = "") {
 function selectQuiz(q) {
     if (!q?.id) return;
     selectedQuizId = q.id;
+    document.body.classList.add("setup-quiz-selected");
+    document.body.classList.remove("setup-create-active");
+    createBtnWrapper?.classList.remove("setup-cta-hidden");
     if (selectedQuizTitle) selectedQuizTitle.textContent = q.title || "Untitled";
     if (selectedQuizBadge) selectedQuizBadge.style.display = "flex";
     if (quizResults) quizResults.style.display = "none";
@@ -921,6 +1062,8 @@ function selectQuiz(q) {
 
 function clearSelection() {
     selectedQuizId = null;
+    document.body.classList.remove("setup-quiz-selected");
+    createBtnWrapper?.classList.add("setup-cta-hidden");
     if (selectedQuizBadge) selectedQuizBadge.style.display = "none";
     if (quizSearchInput) quizSearchInput.value = "";
     if (quizResults) quizResults.style.display = "none";
@@ -1073,6 +1216,8 @@ function startLeaderboardListener() {
 tabSelect?.addEventListener("click", () => {
     tabSelect.classList.add("active");
     tabCreate?.classList.remove("active");
+    document.body.classList.remove("setup-create-active");
+    if (!selectedQuizId) createBtnWrapper?.classList.add("setup-cta-hidden");
     if (sectionSelect) sectionSelect.style.display = "block";
     if (sectionCreate) sectionCreate.style.display = "none";
     clearSelection();
@@ -1082,6 +1227,8 @@ tabSelect?.addEventListener("click", () => {
 tabCreate?.addEventListener("click", () => {
     tabCreate.classList.add("active");
     tabSelect?.classList.remove("active");
+    document.body.classList.add("setup-create-active");
+    createBtnWrapper?.classList.remove("setup-cta-hidden");
     if (sectionCreate) sectionCreate.style.display = "block";
     if (sectionSelect) sectionSelect.style.display = "none";
     clearSelection(); // Clear search selection if we're creating
@@ -1091,6 +1238,13 @@ tabCreate?.addEventListener("click", () => {
 // -- Initialization ------------------------------------------------------------
 async function init() {
     console.info("[LiveQuiz][Host] init start");
+
+    if (isForceHomepageNavigation()) {
+        clearForceHomepageNavigation();
+        clearHostRouteSessionState();
+        goHomeSafely();
+        return;
+    }
 
     // Initialize Lucide icons
     if (window.lucide) {
@@ -1133,21 +1287,14 @@ async function init() {
             console.error("[LiveQuiz][Host] Unhandled init error during session load", err);
         }
 
-        // Session load failed — show clear error, do NOT fall through to setup
-        showHostLoading("Could not restore this live session. Reload the page or return to host setup.");
+        // Session load failed; clear stale state and return home without a browser alert.
+        showHostLoading("This live session has ended. Returning to EdTechra...");
         setHostFallbackReason(lastHostFallbackReason || "session route failed to restore; setup fallback suppressed", {
             sessionId: routeSessionId
         });
 
-        // Add a button to let the user go back to setup
-        if (hostLoadingEl && !hostLoadingEl.querySelector(".host-retry-btn")) {
-            const retryBtn = document.createElement("button");
-            retryBtn.className = "host-retry-btn";
-            retryBtn.textContent = "End / Reset Session";
-            retryBtn.style.cssText = "margin-top:18px;padding:12px 32px;border:1px solid rgba(139,92,246,0.5);border-radius:12px;background:rgba(139,92,246,0.25);color:white;font-weight:800;cursor:pointer;";
-            retryBtn.addEventListener("click", () => resetHostSession({ confirmReset: false }));
-            hostLoadingEl.appendChild(retryBtn);
-        }
+        clearHostRouteSessionState();
+        window.setTimeout(goHomeSafely, 700);
         return;
     }
 
@@ -1260,6 +1407,12 @@ async function loadLobbySessionFromUrl(params) {
         }
 
         const gameData = gameSnap.data();
+        const sessionStatus = gameData.status || GameStatus.LOBBY;
+        if (!isValidSessionStatus(sessionStatus) || isEndedSessionStatus(sessionStatus) || !gameData.quizId) {
+            clearHostRouteSessionState();
+            goHomeSafely();
+            return true;
+        }
         const pin = pinFromUrl || gameData.pin || "";
 
         console.info("[LiveQuiz] Lobby session validated, redirecting to host-lobby.html", {
@@ -1272,12 +1425,13 @@ async function loadLobbySessionFromUrl(params) {
         hasActiveLobby = true;
         const lobbyTarget = buildLobbyUrl(sessionId, pin);
         await transitionToLobbyPage(lobbyTarget);
-        logHostRenderBranch(HostRouteState.LOBBY, { sessionId, status: gameData.status || GameStatus.LOBBY });
+        logHostRenderBranch(HostRouteState.LOBBY, { sessionId, status: sessionStatus });
         return true;
     } catch (error) {
         const message = showFirebaseError("Lobby session read failure", error);
         setHostFallbackReason(message, { sessionId, route: "lobby" });
-        alert("Could not load the host lobby. Please create a new Game PIN.");
+        clearHostRouteSessionState();
+        goHomeSafely();
         return false;
     }
 }
@@ -1367,9 +1521,17 @@ async function loadGameSessionFromUrl(params) {
 
         const gameData = gameSnap.data();
         const sessionStatus = gameData.status || GameStatus.LOBBY;
+        if (!isValidSessionStatus(sessionStatus)) {
+            clearHostSession();
+            throw new Error(`Host game session has invalid status: ${sessionStatus}.`);
+        }
         if (isEndedSessionStatus(sessionStatus)) {
             clearHostSession();
             throw new Error(`Host game session is ${sessionStatus}.`);
+        }
+        if (!gameData.quizId) {
+            clearHostSession();
+            throw new Error("Host game session is missing quiz data.");
         }
 
         const routePin = params.get("pin") || "";
@@ -1442,6 +1604,7 @@ async function loadGameSessionFromUrl(params) {
         }
 
         if (isLiveSessionStatus(sessionStatus)) {
+            startQuizAmbience();
             logHostRenderBranch(HostRouteState.LIVE_QUESTION, {
                 sessionId,
                 status: sessionStatus,
@@ -1474,6 +1637,7 @@ async function loadGameSessionFromUrl(params) {
         }
 
         if (shouldStart) {
+            startQuizAmbience();
             logHostRenderBranch(HostRouteState.LIVE_QUESTION, {
                 sessionId,
                 status: sessionStatus,
@@ -1515,7 +1679,7 @@ async function loadGameSessionFromUrl(params) {
             start: shouldStart,
             hash: window.location.hash || ""
         });
-        alert("Could not start the host game from this session. Please return to the lobby and try again.");
+        clearHostSession();
         return false;
     }
 }
@@ -1672,8 +1836,8 @@ startBtn?.addEventListener("click", async () => {
         sessionId: currentGameId,
         hostMode: document.getElementById("hostModeSelect")?.value || "classroom"
     });
-    // Start bg music here â€” inside a user gesture so autoplay is allowed
-    sounds.game.play().catch(() => { });
+    // Start ambience here inside a user gesture so autoplay is allowed.
+    startQuizAmbience({ alternate: true });
     try {
         await goToNextQuestion();
     } catch (error) {
@@ -1916,6 +2080,39 @@ nextBtn?.addEventListener("click", () => {
 });
 
 // -- 4. Podium Phase — Cinematic Camera Zoom ----------------------------------
+async function buildFinalAnswerStatsByStudentId() {
+    const stats = {};
+    const totalQuestions = Array.isArray(currentQuiz?.questions) ? currentQuiz.questions.length : 0;
+
+    if (!currentGameId || !totalQuestions) return stats;
+
+    const answersSnap = await getDocs(collection(db, "games", currentGameId, "answers"));
+    answersSnap.forEach((answerDoc) => {
+        const answer = answerDoc.data();
+        const uid = answer.uid;
+        const qIndex = Number(answer.qIndex);
+        const question = currentQuiz.questions[qIndex];
+        if (!uid || !question) return;
+
+        if (!stats[uid]) {
+            stats[uid] = { correctCount: 0, wrongCount: 0, accuracy: 0 };
+        }
+
+        if (Number(answer.index) === Number(question.correctIndex)) {
+            stats[uid].correctCount += 1;
+        }
+    });
+
+    Object.values(stats).forEach((studentStats) => {
+        studentStats.wrongCount = Math.max(0, totalQuestions - studentStats.correctCount);
+        studentStats.accuracy = totalQuestions > 0
+            ? Math.round((studentStats.correctCount / totalQuestions) * 100)
+            : 0;
+    });
+
+    return stats;
+}
+
 async function showPodium() {
     await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
 
@@ -1925,8 +2122,27 @@ async function showPodium() {
     const pSnap = await getDocs(query(collection(db, "games", currentGameId, "players"), orderBy("score", "desc")));
     const leaderboard = [];
     pSnap.forEach(d => leaderboard.push({ id: d.id, ...d.data() }));
+    const finalStatsByStudentId = await buildFinalAnswerStatsByStudentId();
+    const totalQuestions = Array.isArray(currentQuiz?.questions) ? currentQuiz.questions.length : 0;
+    leaderboard.forEach((student) => {
+        if (!finalStatsByStudentId[student.id]) {
+            finalStatsByStudentId[student.id] = {
+                correctCount: 0,
+                wrongCount: totalQuestions,
+                accuracy: 0
+            };
+        }
+    });
+    await syncFinalScoresToEdectra({
+        gameId: currentGameId,
+        pin: currentPin,
+        leaderboard,
+        totalQuestions,
+        statsByStudentId: finalStatsByStudentId
+    });
 
     stopAllBg(false);
+    clearQuizAmbienceState();
     showView("podium");
 
     const stage = document.getElementById("podiumStage");
