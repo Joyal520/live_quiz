@@ -1,5 +1,6 @@
 import { db, ensureAnonAuth, TS, Fire } from "./firebase.js";
 import { bindExitFullscreenButtons, enterFullscreen } from "./fullscreen.js";
+import { clearForceHomepageNavigation, goHomeSafely, isForceHomepageNavigation } from "./navigation.js";
 
 const { doc, getDoc, collection, onSnapshot, updateDoc, deleteDoc } = Fire;
 
@@ -16,6 +17,9 @@ let observedJoinTimes = new Map();
 let currentQuizId = "";
 
 const HOST_SESSION_KEY = "edtechra.hostSession";
+const LAST_AMBIENCE_KEY = "lastQuizAmbience";
+const CURRENT_AMBIENCE_KEY = "currentQuizAmbience";
+const PENDING_AMBIENCE_KEY = "pendingQuizAmbience";
 
 function saveHostSession(sessionId, pin, quizId) {
     try {
@@ -32,6 +36,20 @@ function clearHostSession() {
     try {
         localStorage.removeItem(HOST_SESSION_KEY);
     } catch { /* ignore */ }
+}
+
+function reserveNextQuizAmbience() {
+    try {
+        const previousTrack = localStorage.getItem(LAST_AMBIENCE_KEY) || "A";
+        const nextTrack = previousTrack === "A" ? "B" : "A";
+        localStorage.setItem(LAST_AMBIENCE_KEY, nextTrack);
+        sessionStorage.setItem(PENDING_AMBIENCE_KEY, nextTrack);
+        sessionStorage.setItem(CURRENT_AMBIENCE_KEY, nextTrack);
+        return nextTrack;
+    } catch (error) {
+        console.warn("[LiveQuiz] Could not reserve quiz ambience", error);
+        return "A";
+    }
 }
 
 function isEndedSessionStatus(status) {
@@ -387,6 +405,7 @@ async function startGame() {
     }
 
     await enterFullscreen();
+    reserveNextQuizAmbience();
     const target = buildStartUrl();
     console.info("[LiveQuiz] Redirect triggered", { target, sessionId, pin });
     addLog("Starting game", "Opening the host gameplay screen.");
@@ -500,16 +519,14 @@ function toggleLimit() {
 }
 
 function handleLobbyBackNavigation() {
-    if (window.history.length > 1) {
-        window.history.back();
-        return;
-    }
-
-    window.location.href = "./host.html";
+    clearHostSession();
+    goHomeSafely();
 }
 
 function bindEvents() {
-    els.backBtn?.addEventListener("click", () => {
+    els.backBtn?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         handleLobbyBackNavigation();
     });
     els.copyPinBtn?.addEventListener("click", copyPin);
@@ -523,6 +540,13 @@ function bindEvents() {
 }
 
 async function init() {
+    if (isForceHomepageNavigation()) {
+        clearForceHomepageNavigation();
+        clearHostSession();
+        goHomeSafely();
+        return;
+    }
+
     bindEvents();
     bindExitFullscreenButtons();
     ensureResetSessionAction();

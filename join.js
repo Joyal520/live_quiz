@@ -1,5 +1,10 @@
 import { db, auth, ensureAnonAuth, Fire, GameStatus } from "./firebase.js";
+import { clearForceHomepageNavigation, goHomeSafely, isForceHomepageNavigation } from "./navigation.js";
 const { doc, getDoc, setDoc, onSnapshot, getDocs, collection, query, orderBy } = Fire;
+
+if (isForceHomepageNavigation()) {
+    clearForceHomepageNavigation();
+}
 
 // Load confetti via CDN
 const script = document.createElement('script');
@@ -208,14 +213,19 @@ function showScreen(screenId) {
 document.body.dataset.screen = "join";
 
 function handleBackNavigation() {
-    if (window.history.length > 1) {
-        window.history.back();
-    } else {
-        window.location.href = "./index.html";
-    }
+    stopStudentTimer();
+    gameUnsubscribe?.();
+    playersUnsubscribe?.();
+    gameUnsubscribe = null;
+    playersUnsubscribe = null;
+    goHomeSafely();
 }
 
-studentBackBtn?.addEventListener("click", handleBackNavigation);
+studentBackBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleBackNavigation();
+});
 
 function getFirebaseErrorDetails(error) {
     return {

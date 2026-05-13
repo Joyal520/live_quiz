@@ -15,15 +15,20 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2307051f'/%3E%3Cpath d='M16 44 32 10l16 34H36l-4 10-4-10H16Z' fill='%238b5cf6'/%3E%3Ccircle cx='42' cy='20' r='7' fill='%2322d3ee'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="teacher-layout.css?v=ui-nav-fix-20260510" />
+    <link rel="stylesheet" href="teacher-layout.css?v=setup-cta-fix-20260512" />
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        if (window.lucide) window.lucide.createIcons();
+      });
+    </script>
     <style>
       /* PREMIUM HOST DASHBOARD REDESIGN */
       @media (min-width: 900px) {
         .dashboard-layout {
           height: 100vh !important;
-          max-width: 1240px !important;
-          padding: 22px 32px 26px !important;
+          max-width: 1320px !important;
+          padding: 28px 44px 30px !important;
           display: flex;
           flex-direction: column !important;
           justify-content: flex-start !important;
@@ -33,20 +38,20 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 18px;
+          margin-bottom: 24px;
           flex-shrink: 0;
         }
 
         .dashboard-content-wrapper {
           flex-direction: row !important;
           align-items: stretch !important;
-          flex: 1;
+          flex: 0 1 auto;
           min-height: 0;
-          gap: 26px !important;
+          gap: 32px !important;
         }
 
         .dashboard-left-panel {
-          width: 286px !important;
+          width: 300px !important;
           flex-shrink: 0;
           display: block !important;
         }
@@ -55,7 +60,7 @@
           display: flex;
           flex-direction: column;
           height: auto;
-          gap: 14px;
+          gap: 28px;
         }
 
         .info-block {
@@ -63,10 +68,10 @@
           flex-direction: row !important;
           align-items: center !important;
           justify-content: flex-start !important;
-          min-height: 92px !important;
-          padding: 14px 16px !important;
-          border-radius: 16px !important;
-          gap: 14px !important;
+          min-height: 130px !important;
+          padding: 24px 22px !important;
+          border-radius: 22px !important;
+          gap: 18px !important;
           height: auto;
         }
 
@@ -76,8 +81,8 @@
 
         .dashboard-main-panel {
           flex: 1;
-          padding: 22px 30px 24px !important;
-          border-radius: 22px !important;
+          padding: 34px 38px 32px !important;
+          border-radius: 26px !important;
           overflow: hidden !important;
           display: flex;
           flex-direction: column;
@@ -87,36 +92,37 @@
         .main-card {
           height: auto;
           min-height: 0;
-          gap: 14px !important;
+          gap: 22px !important;
         }
 
         .main-card-header {
-          margin-bottom: 8px !important;
-          padding-bottom: 18px !important;
+          margin-bottom: 2px !important;
+          padding: 6px 8px 30px !important;
           flex-shrink: 0;
         }
 
         .premium-illustration {
-          width: 56px !important;
-          height: 56px !important;
+          width: 74px !important;
+          height: 74px !important;
         }
 
         .glass-clipboard {
-          width: 40px !important;
-          height: 52px !important;
+          width: 52px !important;
+          height: 66px !important;
         }
 
         .glass-trophy {
-          font-size: 1.72rem !important;
+          width: 30px !important;
+          height: 30px !important;
         }
 
         .header-text h1 {
-          font-size: clamp(1.78rem, 2.4vw, 2.35rem) !important;
-          margin-bottom: 5px !important;
+          font-size: clamp(2.15rem, 3vw, 3rem) !important;
+          margin-bottom: 8px !important;
         }
 
         .header-text p {
-          font-size: 0.9rem !important;
+          font-size: 1.03rem !important;
           color: rgba(255, 255, 255, 0.62) !important;
         }
 
@@ -125,7 +131,7 @@
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
-          gap: 10px;
+          gap: 18px;
         }
 
         #sectionSelect,
@@ -137,13 +143,13 @@
         }
 
         .settings-row {
-          margin-top: 4px !important;
-          padding-top: 4px;
-          gap: 12px !important;
+          margin-top: 2px !important;
+          padding-top: 0;
+          gap: 24px !important;
         }
 
         .cta-wrapper {
-          margin-top: 12px !important;
+          margin-top: 18px !important;
         }
 
         .quiz-search-wrap {
@@ -158,7 +164,7 @@
         }
 
         #quizResults {
-          max-height: 190px !important;
+          max-height: 180px !important;
         }
 
         .quiz-result-item {
@@ -171,6 +177,18 @@
       }
 
       /* Global Redesign Styles */
+      .dashboard-layout::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 8% 22%, rgba(168, 85, 247, 0.18), transparent 25rem),
+          radial-gradient(circle at 82% 17%, rgba(37, 99, 235, 0.18), transparent 29rem),
+          radial-gradient(circle at 58% 94%, rgba(14, 165, 233, 0.14), transparent 34rem);
+      }
+
       .dashboard-top-nav {
         display: flex;
         justify-content: space-between;
@@ -179,46 +197,82 @@
       }
 
       .dashboard-top-nav .brand {
-        font-size: 1.5rem;
+        font-size: clamp(1.55rem, 2.2vw, 2.08rem);
         font-weight: 800;
         color: white;
         text-decoration: none;
+        letter-spacing: -0.02em;
+        text-shadow: 0 12px 32px rgba(168, 85, 247, 0.28);
       }
 
       .language-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
+        gap: 10px;
+        min-height: 46px;
+        padding: 0 20px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)),
+          rgba(15, 20, 62, 0.42);
+        border: 1px solid rgba(180, 170, 255, 0.22);
+        border-radius: 999px;
+        font-size: 0.93rem;
+        font-weight: 800;
         color: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255,255,255,0.1);
+      }
+
+      .dashboard-main-panel {
+        position: relative;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(124, 58, 237, 0.16), transparent 26rem),
+          radial-gradient(circle at 88% 92%, rgba(37, 99, 235, 0.16), transparent 30rem),
+          linear-gradient(145deg, rgba(8, 12, 35, 0.82), rgba(5, 9, 28, 0.72)) !important;
+        border: 1px solid rgba(152, 137, 255, 0.34) !important;
+        box-shadow:
+          0 34px 90px rgba(0, 0, 0, 0.42),
+          0 0 0 1px rgba(255, 255, 255, 0.03),
+          0 0 72px rgba(67, 56, 202, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+      }
+
+      .dashboard-main-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 28%, transparent 76%, rgba(96, 165, 250, 0.08)),
+          radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 28rem);
+        opacity: 0.7;
       }
 
       .modern-tabs {
-        background: rgba(3, 5, 22, 0.42) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        position: relative;
+        background: rgba(6, 10, 31, 0.66) !important;
+        border: 1px solid rgba(177, 166, 255, 0.14) !important;
         border-radius: 999px !important;
-        padding: 4px !important;
+        padding: 5px !important;
         margin-bottom: 0 !important;
         display: flex;
         flex-direction: row;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 18px 44px rgba(0, 0, 0, 0.24);
       }
 
       .modern-tabs .tab {
         flex: 1;
-        min-height: 38px;
+        min-height: 48px;
         padding: 0 12px !important;
         border-radius: 999px !important;
-        font-size: 0.86rem !important;
+        font-size: 0.95rem !important;
         font-weight: 800 !important;
         text-align: center;
         letter-spacing: 0;
+        color: rgba(226, 232, 255, 0.68) !important;
       }
 
       .modern-tabs .tab:hover {
@@ -228,54 +282,123 @@
       }
 
       .modern-tabs .tab.active {
-        background: linear-gradient(135deg, #8b5cf6, #555bf5) !important;
+        background: linear-gradient(135deg, #a855f7 0%, #7c3aed 45%, #6366f1 100%) !important;
         border-color: rgba(255, 255, 255, 0.22) !important;
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255,255,255,0.16) !important;
+        color: #ffffff !important;
+        box-shadow:
+          0 14px 34px rgba(124, 58, 237, 0.44),
+          0 0 26px rgba(99, 102, 241, 0.28),
+          inset 0 1px 0 rgba(255,255,255,0.2) !important;
       }
 
       .modern-input {
-        min-height: 46px;
-        padding: 10px 16px !important;
-        border-radius: 14px !important;
-        background: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.11) !important;
-        font-size: 0.9rem !important;
+        min-height: 62px;
+        padding: 14px 22px !important;
+        border-radius: 18px !important;
+        background: rgba(6, 11, 34, 0.56) !important;
+        border: 1px solid rgba(180, 170, 255, 0.16) !important;
+        font-size: 1rem !important;
         width: 100%;
         box-sizing: border-box;
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.055),
+          0 14px 32px rgba(0,0,0,0.18);
+      }
+
+      .modern-input:hover {
+        border-color: rgba(168, 85, 247, 0.34) !important;
+        background: rgba(9, 15, 45, 0.7) !important;
+      }
+
+      .modern-input:focus {
+        background: rgba(10, 15, 45, 0.78) !important;
+        border-color: rgba(192, 132, 252, 0.68) !important;
+        box-shadow:
+          0 0 0 4px rgba(139, 92, 246, 0.14),
+          0 0 34px rgba(99, 102, 241, 0.2),
+          inset 0 1px 0 rgba(255,255,255,0.08) !important;
+      }
+
+      .modern-input::placeholder {
+        color: rgba(222, 228, 255, 0.48) !important;
       }
 
       .btn-cta {
-        width: min(560px, 100%) !important;
-        height: 48px !important;
-        padding: 0 18px !important;
+        width: min(430px, 100%) !important;
+        height: 74px !important;
+        padding: 0 68px 0 34px !important;
         border-radius: 999px !important;
-        font-size: 0.95rem !important;
-        background: linear-gradient(135deg, #8b5cf6 0%, #6d5df6 48%, #4f63f5 100%) !important;
+        font-size: 1.08rem !important;
+        background: linear-gradient(112deg, #7c3aed 0%, #7f22ce 40%, #ec4899 68%, #6366f1 100%) !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         gap: 10px;
         animation: none !important;
         position: relative;
-        box-shadow: 0 14px 34px rgba(99, 102, 241, 0.34), inset 0 1px 0 rgba(255,255,255,0.18) !important;
+        letter-spacing: 0 !important;
+        box-shadow:
+          0 20px 54px rgba(124, 58, 237, 0.42),
+          0 0 38px rgba(236, 72, 153, 0.28),
+          inset 0 1px 0 rgba(255,255,255,0.22) !important;
+      }
+
+      body:not(.setup-quiz-selected):not(.setup-create-active) #view-setup .cta-wrapper {
+        display: none !important;
+      }
+
+      #view-setup .cta-wrapper.setup-cta-hidden {
+        display: none !important;
+      }
+
+      body.setup-quiz-selected #view-setup .cta-wrapper,
+      body.setup-create-active #view-setup .cta-wrapper {
+        display: flex !important;
+      }
+
+      @media (min-width: 900px) {
+        body.setup-quiz-selected #view-setup .cta-wrapper {
+          position: fixed;
+          left: 50%;
+          bottom: 28px;
+          z-index: 50;
+          width: min(430px, calc(100vw - 44px));
+          margin: 0 !important;
+          transform: translateX(-50%);
+        }
+      }
+
+      .btn-cta::before {
+        content: "";
+        position: absolute;
+        inset: 14px 26px -18px;
+        z-index: -1;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(124, 58, 237, 0.72), rgba(236, 72, 153, 0.58), rgba(59, 130, 246, 0.55));
+        filter: blur(24px);
+        opacity: 0.72;
       }
 
       .btn-icon-right {
         position: absolute;
-        right: 12px;
-        background: rgba(255, 255, 255, 0.18);
-        border-radius: 12px;
-        width: 32px;
-        height: 32px;
+        right: 14px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #7c3aed;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.65);
       }
 
       .btn-cta:hover {
-        transform: translateY(-1px) scale(1.005) !important;
-        box-shadow: 0 18px 42px rgba(99, 102, 241, 0.44), inset 0 1px 0 rgba(255,255,255,0.22) !important;
+        transform: translateY(-3px) scale(1.01) !important;
+        box-shadow:
+          0 26px 66px rgba(124, 58, 237, 0.52),
+          0 0 48px rgba(236, 72, 153, 0.34),
+          inset 0 1px 0 rgba(255,255,255,0.26) !important;
       }
 
       .btn-cta:active {
@@ -284,51 +407,119 @@
 
       .info-block {
         background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.032)),
-          rgba(21, 10, 45, 0.58) !important;
-        border: 1px solid rgba(255, 255, 255, 0.11) !important;
-        backdrop-filter: blur(14px);
-        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+          linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+          radial-gradient(circle at 18% 0%, rgba(139, 92, 246, 0.2), transparent 12rem),
+          rgba(12, 9, 40, 0.62) !important;
+        border: 1px solid rgba(192, 181, 255, 0.2) !important;
+        backdrop-filter: blur(18px);
+        box-shadow:
+          0 22px 52px rgba(0, 0, 0, 0.24),
+          0 0 28px rgba(88, 80, 220, 0.1),
+          inset 0 1px 0 rgba(255,255,255,0.09);
       }
 
       .icon-wrap {
-        width: 46px !important;
-        height: 46px !important;
+        width: 74px !important;
+        height: 74px !important;
+        border: 1px solid rgba(255,255,255,0.18);
+        box-shadow:
+          0 0 0 6px rgba(255,255,255,0.035),
+          0 16px 34px rgba(0, 0, 0, 0.24),
+          0 0 32px currentColor !important;
+      }
+
+      .icon-wrap svg {
+        width: 34px !important;
+        height: 34px !important;
+        stroke-width: 2.1;
       }
 
       .info-block h4 {
-        margin-bottom: 4px !important;
+        margin-bottom: 8px !important;
         color: #ffffff !important;
-        font-size: 0.94rem !important;
+        font-size: 1.12rem !important;
         font-weight: 800 !important;
-        line-height: 1.08 !important;
+        line-height: 1.12 !important;
       }
 
       .info-block p {
-        color: rgba(255, 255, 255, 0.66) !important;
-        font-size: 0.78rem !important;
-        line-height: 1.32 !important;
+        color: rgba(225, 230, 255, 0.72) !important;
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
       }
 
       /* Background adjustments */
       body {
-        background: #090919 !important; /* deep navy */
+        background: #050719 !important;
       }
 
       .liquid-bg {
         background:
-          radial-gradient(
-            circle at 50% -10%,
-            rgba(139, 92, 246, 0.15),
-            transparent 40rem
-          ),
-          linear-gradient(145deg, #090919, #0c0b29 55%, #07051f) !important;
+          radial-gradient(circle at 12% 20%, rgba(91, 33, 182, 0.34), transparent 34rem),
+          radial-gradient(circle at 88% 24%, rgba(37, 99, 235, 0.36), transparent 38rem),
+          radial-gradient(circle at 52% 112%, rgba(14, 165, 233, 0.18), transparent 42rem),
+          linear-gradient(135deg, #140520 0%, #050b22 45%, #07173a 100%) !important;
+      }
+
+      .main-card,
+      .setup-controls,
+      .main-card-header {
+        position: relative;
+        z-index: 1;
+      }
+
+      .main-card-header {
+        border-bottom-color: rgba(177, 166, 255, 0.13) !important;
+      }
+
+      .glass-clipboard {
+        background: linear-gradient(145deg, rgba(139, 92, 246, 0.98), rgba(99, 102, 241, 0.82)) !important;
+        border-color: rgba(226, 232, 255, 0.35) !important;
+        border-radius: 11px !important;
+        box-shadow:
+          0 16px 34px rgba(124, 58, 237, 0.38),
+          0 0 34px rgba(99, 102, 241, 0.24),
+          inset 0 1px 0 rgba(255,255,255,0.24) !important;
+      }
+
+      .glass-trophy {
+        position: absolute;
+        right: -7px;
+        bottom: 1px;
+        color: #fbbf24;
+        filter: drop-shadow(0 8px 12px rgba(251, 191, 36, 0.34));
+        z-index: 2;
+      }
+
+      .header-text h1 {
+        letter-spacing: -0.035em !important;
+      }
+
+      .gradient-text {
+        background: linear-gradient(135deg, #f0abfc 0%, #c084fc 38%, #818cf8 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+      }
+
+      .quiz-search-input-shell .search-icon-abs {
+        left: 22px !important;
+        width: 24px !important;
+        height: 24px !important;
+        color: rgba(226, 232, 255, 0.6) !important;
+      }
+
+      .quiz-search-wrap .modern-input {
+        padding-left: 64px !important;
+      }
+
+      select.modern-input {
+        background-position: right 22px center !important;
       }
 
       /* Mobile overrides */
       @media (max-width: 899px) {
         .dashboard-layout {
-          padding: 12px !important;
+          padding: 16px !important;
           height: auto !important;
           min-height: 100vh;
         }
@@ -346,9 +537,9 @@
           display: none !important; /* Hide features on mobile entirely */
         }
         .dashboard-main-panel {
-          padding: 20px 16px !important;
-          border-radius: 20px !important;
-          gap: 16px !important;
+          padding: 22px 16px !important;
+          border-radius: 22px !important;
+          gap: 18px !important;
         }
         .main-card-header {
           flex-direction: column !important;
@@ -377,6 +568,27 @@
         }
         .player-status-card .status-actions {
           grid-template-columns: 1fr 1fr !important;
+        }
+        .modern-input {
+          min-height: 54px;
+          font-size: 0.95rem !important;
+        }
+        .modern-tabs .tab {
+          min-height: 44px;
+          font-size: 0.86rem !important;
+        }
+        .btn-cta {
+          width: 100% !important;
+          height: 62px !important;
+        }
+        body.setup-quiz-selected #view-setup .cta-wrapper {
+          position: sticky;
+          bottom: 14px;
+          z-index: 40;
+        }
+        .btn-icon-right {
+          width: 42px;
+          height: 42px;
         }
       }
 
@@ -760,7 +972,7 @@
             <div class="main-card-header">
               <div class="premium-illustration">
                 <div class="glass-clipboard"></div>
-                <div class="glass-trophy">🏆</div>
+                <i data-lucide="trophy" class="glass-trophy"></i>
               </div>
               <div class="header-text">
                 <h1>
@@ -964,14 +1176,14 @@
 
               <!-- Selected quiz badge -->
               <div id="selectedQuizBadge" class="selected-quiz-badge">
-                <span>✅</span>
+                <i data-lucide="check-circle" style="width: 18px; height: 18px"></i>
                 <span id="selectedQuizTitle">No quiz selected</span>
                 <button
                   class="clear-btn"
                   id="clearQuizBtn"
                   title="Clear selection"
                 >
-                  ✖
+                  <i data-lucide="x" style="width: 16px; height: 16px"></i>
                 </button>
               </div>
 
@@ -991,7 +1203,7 @@
                 </select>
               </div>
 
-              <div class="cta-wrapper">
+              <div class="cta-wrapper setup-cta-hidden">
                 <button id="createBtn" class="btn-initialize btn-cta">
                   Initialize Game PIN
                   <div class="btn-icon-right">
@@ -1108,34 +1320,46 @@
           <i data-lucide="arrow-left"></i>
           <span>Back</span>
         </button>
-        <div class="live-stat-card">
-          <span>Game PIN</span>
-          <strong id="hostLivePin">---</strong>
-        </div>
         <div class="live-brand-block">
-          <span>EdTechra</span>
+          <strong>EdTechra</strong>
+          <span>Host Lobby</span>
+          <strong id="hostLivePin" class="sr-only">---</strong>
           <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
         </div>
+        <div class="live-session-card">
+          <span class="live-dot"></span>
+          <strong>LIVE SESSION</strong>
+        </div>
         <div class="live-stat-card">
+          <i data-lucide="users" style="width: 26px; height: 26px"></i>
           <span>Players</span>
           <strong id="hostLivePlayers">0</strong>
+        </div>
+        <div class="language-pill live-language-pill">
+          <i data-lucide="globe" style="width: 20px; height: 20px"></i>
+          English
+          <i data-lucide="chevron-down" style="width: 18px; height: 18px"></i>
         </div>
       </div>
 
       <div class="live-question-shell">
-        <div class="live-progress-row">
-          <div id="qCounter" class="live-question-pill">Question 1 of 10</div>
-          <div class="live-timer-card">
-            <div class="timer-ring" id="timer">--</div>
-            <span>sec</span>
-          </div>
-        </div>
-
         <div class="host-grid live-host-grid">
           <div class="stack live-question-main" style="gap: 16px">
             <div class="live-question-card">
-              <span class="live-question-icon">?</span>
-              <h2 id="qTitle">Question Title</h2>
+              <span class="live-question-icon" aria-hidden="true"></span>
+              <div class="live-question-copy">
+                <div id="qCounter" class="live-question-pill">Question 1 of 10</div>
+                <h2 id="qTitle">Question Title</h2>
+              </div>
+              <div class="xp-progress-card" aria-hidden="true">
+                <div class="xp-badge">XP</div>
+                <strong>125 XP</strong>
+                <div class="xp-track">
+                  <span class="xp-fill"></span>
+                </div>
+                <span class="xp-progress-text">125 / 300 XP</span>
+                <span class="level-badge">Lv. 2</span>
+              </div>
             </div>
           <div
             id="optionsList"
@@ -1148,8 +1372,12 @@
           </div>
         </div>
         <div class="glass-card stack live-submissions-panel" style="padding: 24px; gap: 20px">
+          <div class="live-timer-card">
+            <div class="timer-ring" id="timer">--</div>
+            <span>sec</span>
+          </div>
           <div>
-            <h3>Live Submissions</h3>
+            <h3><i data-lucide="radio" style="width: 22px; height: 22px"></i> Live Submissions</h3>
             <div
               id="answerStats"
               style="
@@ -1310,6 +1538,14 @@
         New Game
       </button>
     </div>
-    <script type="module" src="host.js?v=ui-nav-fix-20260510"></script>
+    <script>
+      window.LiveQuizSupabase = {
+        url: "https://scwvbyfnnufnlimbswnk.supabase.co",
+        anonKey: "sb_publishable_C2V14zNYsM-H5jtRZOQahw_yxdhpV9z"
+      };
+
+      console.log("LiveQuiz Supabase config ready");
+    </script>
+    <script type="module" src="host.js?v=setup-cta-fix-20260512"></script>
   </body>
 </html>

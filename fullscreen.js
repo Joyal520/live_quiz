@@ -28,10 +28,14 @@ export async function enterFullscreen() {
     if (!document.fullscreenElement && !getFullscreenDocument() && root.requestFullscreen) {
         try {
             await root.requestFullscreen();
+            return true;
         } catch (error) {
             console.warn("Fullscreen request failed:", error);
+            return false;
         }
     }
+
+    return true;
 }
 
 export async function exitFullscreen() {
