@@ -484,6 +484,7 @@ const quizResults = document.getElementById("quizResults");
 const selectedQuizBadge = document.getElementById("selectedQuizBadge");
 const selectedQuizTitle = document.getElementById("selectedQuizTitle");
 const clearQuizBtn = document.getElementById("clearQuizBtn");
+const hostModeSelect = document.getElementById("hostModeSelect");
 const modeSelect = document.getElementById("modeSelect");
 const createBtn = document.getElementById("createBtn");
 const createBtnWrapper = createBtn?.closest(".cta-wrapper");
@@ -1070,6 +1071,26 @@ function clearSelection() {
     setSetupStatus("");
 }
 
+function getPendingSelectedQuizId(params) {
+    const routeQuizId = params.get("quizId");
+    if (routeQuizId) return routeQuizId;
+
+    try {
+        const stored = JSON.parse(localStorage.getItem("edtechra_selected_quiz") || "null");
+        return stored?.id || "";
+    } catch {
+        return "";
+    }
+}
+
+function clearPendingSelectedQuiz() {
+    try {
+        localStorage.removeItem("edtechra_selected_quiz");
+    } catch {
+        // Storage can be unavailable in stricter browser contexts.
+    }
+}
+
 quizSearchInput?.addEventListener("input", () => {
     renderQuizResults(quizSearchInput.value);
 });
@@ -1086,6 +1107,102 @@ document.addEventListener("click", (e) => {
 });
 
 clearQuizBtn?.addEventListener("click", clearSelection);
+
+document.getElementById("viewYourQuizzesBtn")?.addEventListener("click", () => {
+    window.location.href = "your-quizzes.html";
+});
+
+const premiumModeDropdowns = [];
+
+function closePremiumModeDropdowns(exceptDropdown = null) {
+    premiumModeDropdowns.forEach(({ root, trigger }) => {
+        if (root === exceptDropdown) return;
+        root.classList.remove("is-open");
+        trigger?.setAttribute("aria-expanded", "false");
+    });
+}
+
+function syncPremiumModeDropdown(select) {
+    const dropdown = premiumModeDropdowns.find((item) => item.select === select);
+    if (!dropdown) return;
+    const selectedOption = select.selectedOptions?.[0] || select.options?.[select.selectedIndex];
+    const selectedText = selectedOption?.textContent?.trim() || "";
+    dropdown.label.textContent = selectedText ? `Selected: ${selectedText}` : "";
+    dropdown.options.forEach((optionButton) => {
+        const isSelected = optionButton.dataset.value === select.value;
+        optionButton.classList.toggle("is-selected", isSelected);
+        optionButton.setAttribute("aria-selected", String(isSelected));
+    });
+}
+
+function setupPremiumModeDropdown(select, trigger) {
+    if (!select || !trigger) return;
+    const wrap = select.closest(".mode-select-wrap");
+    if (!wrap || wrap.querySelector(".premium-mode-dropdown")) return;
+
+    wrap.classList.add("premium-mode-ready");
+    select.classList.add("mode-native-select-hidden");
+
+    const root = document.createElement("div");
+    root.className = "premium-mode-dropdown";
+
+    const menu = document.createElement("div");
+    menu.className = "premium-mode-menu";
+    menu.setAttribute("role", "listbox");
+    menu.setAttribute("aria-label", select.getAttribute("aria-label") || "Quiz mode");
+
+    const optionButtons = Array.from(select.options).map((option) => {
+        const optionButton = document.createElement("button");
+        optionButton.type = "button";
+        optionButton.className = "premium-mode-option";
+        optionButton.dataset.value = option.value;
+        optionButton.textContent = option.textContent;
+        optionButton.setAttribute("role", "option");
+        optionButton.addEventListener("click", () => {
+            select.value = option.value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            closePremiumModeDropdowns();
+        });
+        menu.append(optionButton);
+        return optionButton;
+    });
+
+    const label = document.createElement("p");
+    label.className = "selected-mode-label";
+
+    root.append(menu);
+    trigger.insertAdjacentElement("afterend", root);
+    root.insertAdjacentElement("afterend", label);
+
+    const dropdown = { root, trigger, select, label, options: optionButtons };
+    premiumModeDropdowns.push(dropdown);
+
+    const openDropdown = () => {
+        const willOpen = !root.classList.contains("is-open");
+        closePremiumModeDropdowns(root);
+        root.classList.toggle("is-open", willOpen);
+        trigger.setAttribute("aria-expanded", String(willOpen));
+    };
+
+    trigger.addEventListener("click", openDropdown);
+    select.addEventListener("change", () => syncPremiumModeDropdown(select));
+
+    syncPremiumModeDropdown(select);
+    if (window.lucide) window.lucide.createIcons();
+}
+
+setupPremiumModeDropdown(hostModeSelect, document.getElementById("startHostingBtn"));
+setupPremiumModeDropdown(modeSelect, document.getElementById("startClassicModeBtn"));
+
+document.addEventListener("click", (event) => {
+    if (!premiumModeDropdowns.some(({ root, trigger }) => root.contains(event.target) || trigger.contains(event.target))) {
+        closePremiumModeDropdowns();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closePremiumModeDropdowns();
+});
 
 // -- Leaderboard UI Helpers ----------------------------------------------------
 function toggleLbFreeze() {
@@ -1214,25 +1331,11 @@ function startLeaderboardListener() {
 
 // -- Tab & Creation Logic ------------------------------------------------------
 tabSelect?.addEventListener("click", () => {
-    tabSelect.classList.add("active");
-    tabCreate?.classList.remove("active");
-    document.body.classList.remove("setup-create-active");
-    if (!selectedQuizId) createBtnWrapper?.classList.add("setup-cta-hidden");
-    if (sectionSelect) sectionSelect.style.display = "block";
-    if (sectionCreate) sectionCreate.style.display = "none";
-    clearSelection();
-    setSetupStatus("");
+    window.location.href = "all-quizzes.html";
 });
 
 tabCreate?.addEventListener("click", () => {
-    tabCreate.classList.add("active");
-    tabSelect?.classList.remove("active");
-    document.body.classList.add("setup-create-active");
-    createBtnWrapper?.classList.remove("setup-cta-hidden");
-    if (sectionCreate) sectionCreate.style.display = "block";
-    if (sectionSelect) sectionSelect.style.display = "none";
-    clearSelection(); // Clear search selection if we're creating
-    setSetupStatus("");
+    window.location.href = "create-quiz.html";
 });
 
 // -- Initialization ------------------------------------------------------------
@@ -1317,10 +1420,13 @@ async function init() {
     if (loadedLobby) return;
 
     // If redirected from importer with a quizId, auto-select it
-    const quizId = params.get("quizId");
+    const quizId = getPendingSelectedQuizId(params);
     if (quizId) {
         const found = allQuizzes.find(q => q.id === quizId);
-        if (found) selectQuiz(found);
+        if (found) {
+            selectQuiz(found);
+            clearPendingSelectedQuiz();
+        }
     }
 
     logHostRenderBranch(HostRouteState.SETUP, { reason: "no active session route" });
@@ -1340,7 +1446,7 @@ async function loadQuizzes() {
     });
 
     if (!allQuizzes.length) {
-        setQuizResultsState("No saved quizzes yet. Create or import a quiz to get started.", "info", { show: true });
+        setQuizResultsState("No saved quizzes yet. Create or import a quiz to get started.", "info", { show: false });
         return;
     }
 
@@ -1348,7 +1454,7 @@ async function loadQuizzes() {
         renderQuizResults(quizSearchInput.value);
     } else {
         const label = allQuizzes.length === 1 ? "quiz" : "quizzes";
-        setQuizResultsState(`${allQuizzes.length} saved ${label} loaded. Search or click the field to choose one.`, "success", { show: true });
+        setQuizResultsState(`${allQuizzes.length} saved ${label} loaded. Search or click the field to choose one.`, "success", { show: false });
     }
 }
 
@@ -1566,9 +1672,14 @@ async function loadGameSessionFromUrl(params) {
         // Persist session to localStorage so we can recover on refresh/reload
         saveHostSession(sessionId, currentPin, gameData.quizId);
 
-        if (modeSelect && gameData.gameMode) modeSelect.value = gameData.gameMode;
-        const hostModeSelect = document.getElementById("hostModeSelect");
-        if (hostModeSelect && gameData.hostMode) hostModeSelect.value = gameData.hostMode;
+        if (modeSelect && gameData.gameMode) {
+            modeSelect.value = gameData.gameMode;
+            syncPremiumModeDropdown(modeSelect);
+        }
+        if (hostModeSelect && gameData.hostMode) {
+            hostModeSelect.value = gameData.hostMode;
+            syncPremiumModeDropdown(hostModeSelect);
+        }
 
         const sessionQIndex = getSessionQuestionIndex(gameData);
         const gameStarted = shouldStart || isLiveSessionStatus(sessionStatus) || sessionStatus === GameStatus.FINISHED || sessionQIndex >= 0;
@@ -2095,9 +2206,10 @@ async function buildFinalAnswerStatsByStudentId() {
         if (!uid || !question) return;
 
         if (!stats[uid]) {
-            stats[uid] = { correctCount: 0, wrongCount: 0, accuracy: 0 };
+            stats[uid] = { answeredCount: 0, correctCount: 0, wrongCount: 0, accuracy: 0 };
         }
 
+        stats[uid].answeredCount += 1;
         if (Number(answer.index) === Number(question.correctIndex)) {
             stats[uid].correctCount += 1;
         }
@@ -2113,12 +2225,28 @@ async function buildFinalAnswerStatsByStudentId() {
     return stats;
 }
 
+async function publishFinalPlayerStats(leaderboard, finalStatsByStudentId) {
+    if (!leaderboard.length) return;
+
+    const batch = writeBatch(db);
+
+    leaderboard.forEach((student) => {
+        const stats = finalStatsByStudentId[student.id] || {};
+        const playerRef = doc(db, "games", currentGameId, "players", student.id);
+
+        batch.update(playerRef, {
+            accuracy: stats.accuracy ?? 0,
+            correctCount: stats.correctCount ?? 0,
+            wrongCount: stats.wrongCount ?? 0,
+            answeredCount: stats.answeredCount ?? 0,
+            finalisedAt: TS()
+        });
+    });
+
+    await batch.commit();
+}
+
 async function showPodium() {
-    await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
-
-    // Game is over — clear the saved host session
-    clearHostSession();
-
     const pSnap = await getDocs(query(collection(db, "games", currentGameId, "players"), orderBy("score", "desc")));
     const leaderboard = [];
     pSnap.forEach(d => leaderboard.push({ id: d.id, ...d.data() }));
@@ -2127,12 +2255,17 @@ async function showPodium() {
     leaderboard.forEach((student) => {
         if (!finalStatsByStudentId[student.id]) {
             finalStatsByStudentId[student.id] = {
+                answeredCount: 0,
                 correctCount: 0,
                 wrongCount: totalQuestions,
                 accuracy: 0
             };
         }
     });
+    await publishFinalPlayerStats(leaderboard, finalStatsByStudentId);
+    await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
+    clearHostSession();
+
     await syncFinalScoresToEdectra({
         gameId: currentGameId,
         pin: currentPin,
