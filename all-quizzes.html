@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>All Quizzes - EdTechra Live Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="quiz-pages.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="page-header">
+        <div class="header-main">
+          <a class="back-pill" href="host.html">
+            <i data-lucide="arrow-left"></i>
+            Back
+          </a>
+          <div class="title-block">
+            <h1>All Quizzes</h1>
+            <p>Explore ready-made quizzes across different topics.</p>
+          </div>
+        </div>
+        <a class="ghost-pill" href="create-quiz.html">
+          <i data-lucide="plus-circle"></i>
+          Create Quiz
+        </a>
+      </header>
+
+      <main class="glass-panel">
+        <div class="toolbar">
+          <label class="search-box" aria-label="Search quizzes">
+            <i data-lucide="search"></i>
+            <input id="quizSearch" type="search" placeholder="Search all quizzes..." autocomplete="off" />
+          </label>
+        </div>
+
+        <div id="categoryFilters" class="filter-row" aria-label="Quiz categories"></div>
+        <div id="quizGrid" class="quiz-grid" aria-live="polite"></div>
+        <div id="pageStatus" class="status-text" role="status"></div>
+      </main>
+    </div>
+
+    <script type="module" src="all-quizzes.js"></script>
+  </body>
+</html>

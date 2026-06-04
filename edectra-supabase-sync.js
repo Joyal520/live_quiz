@@ -58,7 +58,19 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
     console.info("[LiveQuiz][Edectra] sync started", { classId, gameId, pin });
 
     const safeTotalQuestions = toNumber(totalQuestions);
-    const rows = leaderboard.map((student) => {
+    const eligibleLeaderboard = leaderboard.filter((student) => {
+        if (student.source !== "edectra") return false;
+        if (student.edectraMembershipValidated !== true) {
+            console.warn("[LiveQuiz][Edectra] result row skipped because membership was not validated", {
+                firebaseStudentId: student.id,
+                studentName: student.name || ""
+            });
+            return false;
+        }
+        return Boolean(student.edectraStudentId || student.edectraUserId);
+    });
+
+    const rows = eligibleLeaderboard.map((student) => {
         const stats = statsByStudentId[student.id] || {};
         const correctCount = toNumber(stats.correctCount);
         const wrongCount = toNumber(stats.wrongCount);
@@ -71,7 +83,7 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
             source: context.source || "edectra",
             firebase_game_id: gameId,
             firebase_pin: pin || "",
-            student_id: student.id,
+            student_id: student.edectraStudentId || student.edectraUserId,
             student_name: student.name || "",
             score: toNumber(student.score),
             correct_count: correctCount,
@@ -82,6 +94,11 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
     });
 
     console.info("[LiveQuiz][Edectra] number of results being synced", rows.length);
+
+    if (rows.length === 0) {
+        console.warn("[LiveQuiz][Edectra] sync skipped", { reason: "no validated Edectra students", classId, gameId });
+        return { skipped: true, reason: "no validated Edectra students" };
+    }
 
     if (!hasSupabaseConfig()) {
         const error = new Error("Missing Supabase anon configuration.");

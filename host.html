@@ -23,12 +23,22 @@
       });
     </script>
     <style>
+      /* ── Bottom-clip fix: let the page scroll ── */
+      html,
+      body {
+        min-height: 100% !important;
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+
       /* PREMIUM HOST DASHBOARD REDESIGN */
       @media (min-width: 900px) {
         .dashboard-layout {
-          height: 100vh !important;
+          min-height: 100vh !important;
+          height: auto !important;
           max-width: 1320px !important;
-          padding: 28px 44px 30px !important;
+          padding: 28px 44px 64px !important;
           display: flex;
           flex-direction: column !important;
           justify-content: flex-start !important;
@@ -44,7 +54,7 @@
 
         .dashboard-content-wrapper {
           flex-direction: row !important;
-          align-items: stretch !important;
+          align-items: flex-start !important;
           flex: 0 1 auto;
           min-height: 0;
           gap: 32px !important;
@@ -83,7 +93,7 @@
           flex: 1;
           padding: 34px 38px 32px !important;
           border-radius: 26px !important;
-          overflow: hidden !important;
+          overflow: visible !important;
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
@@ -358,13 +368,13 @@
 
       @media (min-width: 900px) {
         body.setup-quiz-selected #view-setup .cta-wrapper {
-          position: fixed;
-          left: 50%;
-          bottom: 28px;
-          z-index: 50;
-          width: min(430px, calc(100vw - 44px));
+          position: static;
+          left: auto;
+          bottom: auto;
+          z-index: auto;
+          width: 100%;
           margin: 0 !important;
-          transform: translateX(-50%);
+          transform: none;
         }
       }
 
@@ -453,6 +463,11 @@
         background: #050719 !important;
       }
 
+      body[data-host-view="setup"] {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+
       .liquid-bg {
         background:
           radial-gradient(circle at 12% 20%, rgba(91, 33, 182, 0.34), transparent 34rem),
@@ -514,6 +529,721 @@
 
       select.modern-input {
         background-position: right 22px center !important;
+      }
+
+      /* Reference setup dashboard */
+      #view-setup.dashboard-layout {
+        --bg-dark: #050719;
+        --panel-dark: rgba(10, 16, 42, 0.78);
+        --card-dark: rgba(14, 20, 55, 0.86);
+        --border-purple: rgba(160, 75, 255, 0.55);
+        --border-blue: rgba(38, 119, 255, 0.55);
+        --border-pink: rgba(236, 45, 141, 0.6);
+        --text-main: #ffffff;
+        --text-muted: #b9bdd7;
+        --purple: #9d35ff;
+        --blue: #1268ff;
+        --pink: #e92c8f;
+        --green: #19c878;
+        --gold: #f7b733;
+        width: 100vw;
+        max-width: 100vw !important;
+        min-height: 100vh;
+        height: auto !important;
+        overflow-y: auto !important;
+        padding: 28px 32px 60px !important;
+        color: var(--text-main);
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 7% 16%, rgba(125, 42, 255, 0.24), transparent 28rem),
+          radial-gradient(circle at 72% 0%, rgba(37, 99, 235, 0.17), transparent 34rem),
+          radial-gradient(circle at 71% 94%, rgba(236, 45, 141, 0.17), transparent 34rem),
+          linear-gradient(132deg, #09051f 0%, #04091d 45%, #061436 100%);
+      }
+
+      #view-setup.dashboard-layout::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(circle, rgba(255, 209, 102, 0.95) 0 2px, transparent 3px),
+          radial-gradient(circle, rgba(168, 85, 247, 0.9) 0 2px, transparent 3px),
+          radial-gradient(circle, rgba(236, 72, 153, 0.85) 0 2px, transparent 3px),
+          radial-gradient(circle, rgba(96, 165, 250, 0.9) 0 2px, transparent 3px);
+        background-size: 230px 190px, 310px 220px, 270px 260px, 360px 300px;
+        background-position: 20px 120px, 140px 36px, 84% 92px, 92% 180px;
+        opacity: 0.55;
+      }
+
+      .dashboard-top-nav.setup-top-nav {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.4fr) minmax(170px, 0.7fr);
+        align-items: start;
+        gap: 26px;
+        margin: 0 0 24px;
+      }
+
+      .host-nav-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      .dashboard-top-nav .brand {
+        font-size: clamp(1.65rem, 2.3vw, 2.35rem);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .setup-title-lockup {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+        min-width: 0;
+      }
+
+      .setup-title-icon {
+        position: relative;
+        width: 92px;
+        height: 92px;
+        flex: 0 0 auto;
+      }
+
+      .setup-title-icon .glass-clipboard {
+        width: 66px !important;
+        height: 78px !important;
+        transform: rotate(-11deg);
+      }
+
+      .setup-title-icon .glass-clipboard::before {
+        content: "";
+        position: absolute;
+        inset: 15px 14px;
+        border-radius: 8px;
+        background:
+          linear-gradient(#f5f0ff 0 0) 0 0 / 26px 4px no-repeat,
+          linear-gradient(#f5f0ff 0 0) 0 14px / 38px 4px no-repeat,
+          linear-gradient(#f5f0ff 0 0) 0 28px / 34px 4px no-repeat;
+        box-shadow:
+          -8px 0 0 -5px #f5f0ff,
+          -8px 14px 0 -5px #f5f0ff,
+          -8px 28px 0 -5px #f5f0ff;
+        opacity: 0.88;
+      }
+
+      .setup-title-icon .glass-trophy {
+        width: 34px !important;
+        height: 34px !important;
+        right: 5px;
+        bottom: 12px;
+      }
+
+      .setup-title-text h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2.2rem, 3.4vw, 3.55rem);
+        line-height: 1.03;
+        font-weight: 900;
+        letter-spacing: 0;
+        white-space: nowrap;
+      }
+
+      .setup-title-text p {
+        margin: 0;
+        color: rgba(235, 238, 255, 0.82);
+        font-size: clamp(1rem, 1.2vw, 1.28rem);
+        font-weight: 500;
+      }
+
+      .setup-title-text {
+        min-width: 0;
+      }
+
+      .setup-language-wrap {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .dashboard-content-wrapper.setup-shell {
+        position: relative;
+        z-index: 1;
+        display: grid !important;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 28px !important;
+        align-items: flex-start !important;
+        width: 100%;
+      }
+
+      .dashboard-left-panel {
+        width: auto !important;
+      }
+
+      .info-blocks {
+        gap: 24px;
+      }
+
+      .info-block {
+        min-height: 150px !important;
+        padding: 26px 24px !important;
+        border-radius: 22px !important;
+      }
+
+      .setup-trophy-scene {
+        position: relative;
+        min-height: 292px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        margin-top: 18px;
+        overflow: hidden;
+      }
+
+      .setup-trophy-scene::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: 260px;
+        height: 72px;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(168, 85, 247, 0.38), rgba(236, 72, 153, 0.16) 52%, transparent 72%);
+        filter: blur(2px);
+      }
+
+      .setup-trophy {
+        position: relative;
+        width: 190px;
+        height: 184px;
+        color: var(--gold);
+        filter: drop-shadow(0 24px 34px rgba(124, 58, 237, 0.42));
+      }
+
+      .setup-trophy svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .trophy-spark {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        background: #fbbf24;
+        box-shadow: 0 0 14px currentColor;
+        transform: rotate(45deg);
+      }
+
+      .trophy-spark:nth-child(1) { left: 20px; top: 26px; color: #fbbf24; }
+      .trophy-spark:nth-child(2) { right: 42px; top: 44px; color: #a855f7; }
+      .trophy-spark:nth-child(3) { left: 58px; top: 5px; color: #ec4899; }
+      .trophy-spark:nth-child(4) { right: 10px; bottom: 82px; color: #60a5fa; }
+
+      .dashboard-main-panel.setup-main-panel {
+        padding: 26px 30px 40px !important;
+        border-radius: 28px !important;
+        overflow: visible !important;
+      }
+
+      .main-card.setup-main-card {
+        gap: 24px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+
+      .main-card.setup-main-card,
+      .setup-controls {
+        width: 100%;
+      }
+
+      .setup-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin: 4px 0 20px;
+        color: #fff;
+        font-size: clamp(1.4rem, 2vw, 2rem);
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .setup-section-title::before,
+      .setup-section-title::after {
+        content: "";
+        width: min(96px, 12vw);
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+      }
+
+      .setup-section-title span::before,
+      .setup-section-title span::after {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin: 0 14px;
+        border-radius: 2px;
+        background: #fff;
+        box-shadow: 0 0 18px rgba(255,255,255,0.75);
+        transform: rotate(45deg);
+        vertical-align: 0.12em;
+      }
+
+      .quiz-option-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .setup-choice-card {
+        position: relative;
+        min-height: 326px;
+        padding: 26px 26px 24px;
+        border-radius: 22px;
+        border: 1px solid var(--border-purple);
+        background:
+          radial-gradient(circle at 50% 10%, rgba(157, 53, 255, 0.18), transparent 14rem),
+          linear-gradient(153deg, rgba(36, 13, 82, 0.78), rgba(8, 11, 40, 0.9));
+        box-shadow: 0 20px 60px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+
+      .setup-choice-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 28px 70px rgba(0,0,0,0.42), 0 0 34px rgba(157, 53, 255, 0.24);
+      }
+
+      .setup-choice-card.blue {
+        border-color: var(--border-blue);
+        background:
+          radial-gradient(circle at 50% 12%, rgba(18, 104, 255, 0.22), transparent 14rem),
+          linear-gradient(153deg, rgba(4, 36, 89, 0.8), rgba(7, 13, 48, 0.92));
+      }
+
+      .setup-choice-card.pink {
+        border-color: var(--border-pink);
+        background:
+          radial-gradient(circle at 50% 12%, rgba(233, 44, 143, 0.22), transparent 14rem),
+          linear-gradient(153deg, rgba(60, 14, 65, 0.82), rgba(16, 10, 42, 0.92));
+      }
+
+      .setup-illustration {
+        height: 132px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+      }
+
+      .setup-choice-card h3 {
+        margin: 0 0 10px;
+        font-size: clamp(1.35rem, 1.8vw, 1.8rem);
+        line-height: 1.1;
+        color: #fff;
+        font-weight: 900;
+      }
+
+      .setup-choice-card p {
+        min-height: 54px;
+        margin: 0 0 22px;
+        color: rgba(231, 234, 255, 0.78);
+        font-size: 1rem;
+        line-height: 1.45;
+      }
+
+      .setup-card-action,
+      .mode-action,
+      .generate-pin-action {
+        border: 0;
+        cursor: pointer;
+        color: #fff;
+        font-family: inherit;
+        font-weight: 900;
+        letter-spacing: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border-radius: 999px;
+        transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+      }
+
+      .setup-card-action {
+        width: 100%;
+        min-height: 58px;
+        margin-top: auto;
+        font-size: 1rem;
+        background: linear-gradient(90deg, #b414ff, #6d17d6);
+        box-shadow: 0 16px 32px rgba(157, 53, 255, 0.36);
+      }
+
+      .setup-card-action.blue { background: linear-gradient(90deg, #0b7cff, #074ed8); box-shadow: 0 16px 32px rgba(18, 104, 255, 0.34); }
+      .setup-card-action.pink { background: linear-gradient(90deg, #f23691, #d81377); box-shadow: 0 16px 32px rgba(233, 44, 143, 0.36); }
+
+      .setup-card-action:hover,
+      .mode-action:hover,
+      .generate-pin-action:hover {
+        transform: translateY(-2px);
+      }
+
+      #sectionSelect {
+        width: 100%;
+        margin-top: 14px;
+      }
+
+      .quiz-search-wrap {
+        margin: 0 !important;
+      }
+
+      .quiz-search-input-shell {
+        position: relative;
+      }
+
+      .quiz-search-wrap .modern-input {
+        min-height: 46px !important;
+        border-radius: 999px !important;
+        font-size: 0.9rem !important;
+        padding-left: 48px !important;
+      }
+
+      .quiz-search-input-shell .search-icon-abs {
+        left: 16px !important;
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      #quizResults {
+        position: absolute;
+        z-index: 12;
+        left: 0;
+        right: 0;
+        margin-top: 10px;
+        text-align: left;
+        border-color: rgba(168, 85, 247, 0.36);
+        background: rgba(7, 11, 38, 0.96);
+      }
+
+      .selected-quiz-badge {
+        width: min(720px, 100%);
+        margin: 18px auto 0 !important;
+        border-radius: 999px !important;
+        background: rgba(25, 200, 120, 0.13) !important;
+        border-color: rgba(25, 200, 120, 0.48) !important;
+      }
+
+      .setup-create-drawer {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(236, 45, 141, 0.36);
+        background: rgba(11, 14, 45, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 54px rgba(0,0,0,0.28);
+      }
+
+      .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+        padding: 18px;
+        border-radius: 24px;
+        border: 1px solid rgba(153, 170, 255, 0.28);
+        background: rgba(10, 15, 48, 0.48);
+      }
+
+      .mode-card {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr);
+        gap: 20px;
+        align-items: center;
+        min-height: 124px;
+        padding: 16px 20px;
+        border-radius: 18px;
+        border: 1px solid rgba(25, 200, 120, 0.55);
+        background:
+          radial-gradient(circle at 92% 20%, rgba(25, 200, 120, 0.16), transparent 10rem),
+          rgba(4, 45, 37, 0.52);
+        overflow: visible;
+      }
+
+      .mode-card.blue {
+        border-color: rgba(38, 119, 255, 0.62);
+        background:
+          radial-gradient(circle at 92% 20%, rgba(38, 119, 255, 0.2), transparent 10rem),
+          rgba(4, 24, 69, 0.62);
+      }
+
+      .mode-copy h3 {
+        margin: 0 0 6px;
+        color: #fff;
+        font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+        line-height: 1.08;
+        font-weight: 900;
+      }
+
+      .mode-copy p {
+        margin: 0 0 14px;
+        color: rgba(231, 234, 255, 0.78);
+        line-height: 1.38;
+      }
+
+      .mode-select-wrap {
+        position: relative;
+        margin: 0 0 14px;
+      }
+
+      .mode-select-wrap::after {
+        content: "";
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid rgba(255, 255, 255, 0.86);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.86);
+        transform: translateY(-70%) rotate(45deg);
+        pointer-events: none;
+      }
+
+      .mode-select-wrap.premium-mode-ready::after,
+      .mode-select-wrap:has(.mode-native-select-hidden)::after {
+        display: none;
+      }
+
+      .mode-select-wrap.premium-mode-ready,
+      .mode-select-wrap:has(.mode-native-select-hidden) {
+        height: 0;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .mode-native-select-hidden {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+        left: -9999px;
+      }
+
+      #view-setup .mode-select {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 44px 0 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(52, 211, 153, 0.7);
+        background: rgba(4, 10, 32, 0.86);
+        color: #fff;
+        font-weight: 800;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.08), 0 12px 26px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      #view-setup .mode-card.blue .mode-select {
+        border-color: rgba(96, 165, 250, 0.72);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1), 0 12px 26px rgba(0, 0, 0, 0.22);
+      }
+
+      #view-setup .mode-select:hover,
+      #view-setup .mode-select:focus {
+        background: rgba(5, 12, 38, 0.94);
+        border-color: rgba(167, 243, 208, 0.95);
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16), 0 0 24px rgba(52, 211, 153, 0.18);
+      }
+
+      #view-setup .mode-card.blue .mode-select:hover,
+      #view-setup .mode-card.blue .mode-select:focus {
+        border-color: rgba(191, 219, 254, 0.96);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16), 0 0 24px rgba(96, 165, 250, 0.2);
+      }
+
+      #view-setup .mode-select option {
+        background: #171125;
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .premium-mode-dropdown {
+        position: relative;
+        height: 0;
+        z-index: 3;
+      }
+
+      .mode-action i {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        transition: transform 0.2s ease;
+      }
+
+      .mode-action[aria-expanded="true"] i {
+        transform: rotate(90deg);
+      }
+
+      .premium-mode-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        display: none;
+        padding: 8px;
+        border-radius: 16px;
+        border: 1px solid rgba(167, 243, 208, 0.36);
+        background: rgba(4, 10, 32, 0.98);
+        box-shadow: 0 24px 54px rgba(0, 0, 0, 0.42);
+      }
+
+      .mode-card.blue .premium-mode-menu {
+        border-color: rgba(147, 197, 253, 0.38);
+      }
+
+      .premium-mode-dropdown.is-open .premium-mode-menu {
+        display: grid;
+        gap: 6px;
+      }
+
+      .premium-mode-option {
+        min-height: 42px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: rgba(239, 246, 255, 0.88);
+        font: inherit;
+        font-weight: 800;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .premium-mode-option:hover,
+      .premium-mode-option:focus-visible {
+        background: rgba(52, 211, 153, 0.16);
+        color: #fff;
+        outline: none;
+      }
+
+      .mode-card.blue .premium-mode-option:hover,
+      .mode-card.blue .premium-mode-option:focus-visible {
+        background: rgba(96, 165, 250, 0.18);
+      }
+
+      .premium-mode-option.is-selected {
+        background: rgba(52, 211, 153, 0.24);
+        color: #fff;
+      }
+
+      .mode-card.blue .premium-mode-option.is-selected {
+        background: rgba(96, 165, 250, 0.24);
+      }
+
+      .selected-mode-label {
+        margin: 8px 0 0;
+        color: rgba(231, 234, 255, 0.72);
+        font-size: 0.86rem;
+        font-weight: 800;
+        line-height: 1.25;
+        pointer-events: none;
+      }
+
+      .mode-action {
+        min-height: 46px;
+        padding: 0 28px;
+        background: linear-gradient(90deg, #16c96f, #0aa758);
+        box-shadow: 0 14px 30px rgba(25, 200, 120, 0.28);
+      }
+
+      .mode-action.blue {
+        background: linear-gradient(90deg, #0d75ff, #0958e7);
+        box-shadow: 0 14px 30px rgba(18, 104, 255, 0.3);
+      }
+
+      .setup-hidden-selects {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      #view-setup .cta-wrapper,
+      #view-setup .cta-wrapper.setup-cta-hidden,
+      body:not(.setup-quiz-selected):not(.setup-create-active) #view-setup .cta-wrapper {
+        display: flex !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        transform: none !important;
+      }
+
+      .setup-pin-cta {
+        display: grid !important;
+        grid-template-columns: 74px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 22px;
+        width: 100%;
+        padding: 20px 24px;
+        border-radius: 24px;
+        border: 1px solid rgba(192, 132, 252, 0.55);
+        background:
+          radial-gradient(circle at 62% 20%, rgba(236, 72, 153, 0.36), transparent 18rem),
+          linear-gradient(100deg, rgba(116, 22, 205, 0.95), rgba(28, 23, 110, 0.94));
+        box-shadow: 0 24px 60px rgba(124, 58, 237, 0.34), inset 0 1px 0 rgba(255,255,255,0.16);
+      }
+
+      .pin-cta-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, #7c3aed, #6d35ff);
+        box-shadow: 0 0 34px rgba(168, 85, 247, 0.52);
+      }
+
+      .pin-cta-copy h3 {
+        margin: 0 0 6px;
+        font-size: clamp(1.25rem, 1.8vw, 1.7rem);
+        font-weight: 900;
+        color: #fff;
+      }
+
+      .pin-cta-copy p {
+        margin: 0;
+        color: rgba(245, 246, 255, 0.78);
+      }
+
+      .btn-cta.generate-pin-action {
+        width: auto !important;
+        height: 58px !important;
+        min-width: 190px;
+        padding: 0 24px !important;
+        border: 1px solid rgba(232, 222, 255, 0.7) !important;
+        background: rgba(9, 12, 43, 0.28) !important;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+      }
+
+      .btn-cta.generate-pin-action::before,
+      .btn-cta.generate-pin-action .btn-icon-right {
+        display: none !important;
+      }
+
+      .setup-svg {
+        overflow: visible;
+        filter: drop-shadow(0 18px 24px rgba(0,0,0,0.28));
       }
 
       /* Mobile overrides */
@@ -727,6 +1457,300 @@
         color: white;
       }
 
+      #view-setup #quizResults {
+        display: none;
+        position: absolute;
+        z-index: 12;
+        left: 0;
+        right: 0;
+        margin-top: 10px;
+        max-height: 260px;
+        overflow-y: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(168, 85, 247, 0.36);
+        background: rgba(7, 11, 38, 0.96);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 22px 46px rgba(0,0,0,0.35);
+      }
+
+      #view-setup .quiz-result-item {
+        padding: 13px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      #view-setup .quiz-result-item:hover,
+      #view-setup .quiz-result-item.selected {
+        background: rgba(157, 53, 255, 0.24);
+      }
+
+      @media (min-width: 1181px) {
+        #view-setup.dashboard-layout {
+          min-height: 100vh;
+          padding-top: 20px !important;
+          padding-bottom: 64px !important;
+        }
+
+        .dashboard-top-nav.setup-top-nav {
+          margin-bottom: 14px;
+        }
+
+        .setup-title-icon {
+          width: 74px;
+          height: 74px;
+        }
+
+        .setup-title-icon .glass-clipboard {
+          width: 52px !important;
+          height: 62px !important;
+        }
+
+        .setup-title-icon .glass-trophy {
+          width: 27px !important;
+          height: 27px !important;
+          bottom: 8px;
+        }
+
+        .setup-title-text h1 {
+          font-size: clamp(2.05rem, 3vw, 3.1rem);
+        }
+
+        .setup-title-text p {
+          font-size: 0.98rem;
+        }
+
+        .dashboard-content-wrapper.setup-shell {
+          gap: 22px !important;
+        }
+
+        #view-setup .info-blocks {
+          gap: 16px;
+        }
+
+        #view-setup .info-block {
+          min-height: 122px !important;
+          padding: 20px 18px !important;
+        }
+
+        #view-setup .icon-wrap {
+          width: 62px !important;
+          height: 62px !important;
+        }
+
+        .setup-trophy-scene {
+          min-height: 220px;
+          margin-top: 10px;
+        }
+
+        .setup-trophy {
+          width: 154px;
+          height: 156px;
+        }
+
+        .dashboard-main-panel.setup-main-panel {
+          padding: 20px 28px 20px !important;
+        }
+
+        .main-card.setup-main-card,
+        .setup-controls {
+          gap: 16px !important;
+        }
+
+        .setup-section-title {
+          margin: 0 0 14px;
+          font-size: clamp(1.25rem, 1.65vw, 1.65rem);
+        }
+
+        .quiz-option-grid {
+          gap: 18px;
+        }
+
+        .setup-choice-card {
+          min-height: 282px;
+          padding: 18px 22px 20px;
+        }
+
+        .setup-illustration {
+          height: 100px;
+          margin-bottom: 14px;
+        }
+
+        .setup-illustration .setup-svg {
+          max-height: 108px;
+        }
+
+        .setup-choice-card h3 {
+          font-size: clamp(1.15rem, 1.45vw, 1.45rem);
+        }
+
+        .setup-choice-card p {
+          min-height: 44px;
+          margin-bottom: 16px;
+          font-size: 0.9rem;
+          line-height: 1.35;
+        }
+
+        .setup-card-action {
+          min-height: 48px;
+        }
+
+        .mode-grid {
+          gap: 18px;
+          padding: 14px;
+        }
+
+        .mode-card {
+          min-height: 104px;
+          padding: 12px 18px;
+          grid-template-columns: 88px minmax(0, 1fr);
+        }
+
+        .mode-illustration .setup-svg {
+          width: 88px;
+          height: 78px;
+        }
+
+        .mode-copy h3 {
+          font-size: clamp(1.1rem, 1.45vw, 1.45rem);
+        }
+
+        .mode-copy p {
+          margin-bottom: 10px;
+          font-size: 0.9rem;
+        }
+
+        .mode-action {
+          min-height: 40px;
+          padding: 0 22px;
+        }
+
+        .setup-pin-cta {
+          min-height: 78px;
+          padding: 14px 22px;
+        }
+
+        .pin-cta-icon {
+          width: 54px;
+          height: 54px;
+        }
+
+        .btn-cta.generate-pin-action {
+          height: 48px !important;
+        }
+      }
+
+      @media (max-width: 1180px) {
+        .dashboard-top-nav.setup-top-nav {
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+
+        .setup-title-lockup {
+          justify-content: flex-start;
+        }
+
+        .setup-language-wrap {
+          justify-content: flex-start;
+        }
+
+        .dashboard-content-wrapper.setup-shell {
+          grid-template-columns: 1fr;
+        }
+
+        #view-setup .dashboard-left-panel {
+          display: block !important;
+        }
+
+        #view-setup .info-blocks {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .setup-trophy-scene {
+          display: none;
+        }
+
+        .quiz-option-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        #view-setup.dashboard-layout {
+          padding: 18px 14px 24px !important;
+        }
+
+        .host-nav-left {
+          flex-wrap: wrap;
+        }
+
+        .setup-title-lockup {
+          align-items: flex-start;
+          gap: 14px;
+        }
+
+        .setup-title-icon {
+          width: 66px;
+          height: 66px;
+        }
+
+        .setup-title-icon .glass-clipboard {
+          width: 46px !important;
+          height: 56px !important;
+        }
+
+        .setup-title-icon .glass-trophy {
+          width: 24px !important;
+          height: 24px !important;
+        }
+
+        .setup-title-text h1 {
+          font-size: clamp(1.85rem, 9vw, 2.35rem);
+          white-space: normal;
+        }
+
+        .setup-title-text p {
+          max-width: 250px;
+          font-size: 0.92rem;
+          line-height: 1.35;
+        }
+
+        #view-setup .info-blocks,
+        .quiz-option-grid,
+        .mode-grid {
+          grid-template-columns: 1fr;
+        }
+
+        #view-setup .dashboard-left-panel {
+          display: block !important;
+        }
+
+        #view-setup .info-block {
+          min-height: auto !important;
+        }
+
+        .dashboard-main-panel.setup-main-panel {
+          padding: 18px 14px 20px !important;
+        }
+
+        .setup-choice-card {
+          min-height: auto;
+        }
+
+        .mode-card {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+
+        .setup-pin-cta {
+          grid-template-columns: 1fr;
+          justify-items: start;
+        }
+
+        .btn-cta.generate-pin-action {
+          width: 100% !important;
+        }
+      }
+
       /* Confetti Canvas */
       #confetti-canvas {
         position: fixed;
@@ -862,7 +1886,7 @@
     </style>
   </head>
 
-  <body>
+  <body data-host-view="setup">
     <!-- Liquid Background (Premium effect) -->
     <div class="liquid-bg">
       <div class="blob blob-1"></div>
@@ -895,7 +1919,7 @@
       class="game-view dashboard-layout"
       style="display: flex"
     >
-      <header class="dashboard-top-nav">
+      <header class="dashboard-top-nav setup-top-nav">
         <div class="host-nav-left">
           <button type="button" class="host-back-button live-quiz-back-button" data-live-back aria-label="Back">
             <i data-lucide="arrow-left"></i>
@@ -903,18 +1927,30 @@
           </button>
           <a href="index.html" class="brand">EdTechra</a>
         </div>
+        <div class="setup-title-lockup">
+          <div class="setup-title-icon" aria-hidden="true">
+            <div class="glass-clipboard"></div>
+            <i data-lucide="trophy" class="glass-trophy"></i>
+          </div>
+          <div class="setup-title-text">
+            <h1>Prepare for <span class="gradient-text">Competition</span></h1>
+            <p>Prepare your students for an epic learning journey.</p>
+          </div>
+        </div>
         <button type="button" class="fullscreen-header-btn exitFullscreenBtn" hidden>Exit Fullscreen</button>
-        <div class="language-pill">
-          <i data-lucide="globe" style="width: 16px; height: 16px"></i>
-          English
-          <i
-            data-lucide="chevron-down"
-            style="width: 14px; height: 14px; margin-left: 2px"
-          ></i>
+        <div class="setup-language-wrap">
+          <div class="language-pill">
+            <i data-lucide="globe" style="width: 16px; height: 16px"></i>
+            English
+            <i
+              data-lucide="chevron-down"
+              style="width: 14px; height: 14px; margin-left: 2px"
+            ></i>
+          </div>
         </div>
       </header>
 
-      <div class="dashboard-content-wrapper">
+      <div class="dashboard-content-wrapper setup-shell">
         <!-- Left Feature Panels -->
         <aside class="dashboard-left-panel">
           <div class="info-blocks">
@@ -964,215 +2000,133 @@
               ></i>
             </div>
           </div>
+          <div class="setup-trophy-scene" aria-hidden="true">
+            <span class="trophy-spark"></span>
+            <span class="trophy-spark"></span>
+            <span class="trophy-spark"></span>
+            <span class="trophy-spark"></span>
+            <div class="setup-trophy">
+              <svg viewBox="0 0 220 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M62 54H33c-7 0-12 5-12 12 0 35 24 61 58 68" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round"/>
+                <path d="M158 54h29c7 0 12 5 12 12 0 35-24 61-58 68" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round"/>
+                <path d="M57 35h106v50c0 38-25 70-53 70S57 123 57 85V35Z" fill="url(#trophyCup)" stroke="#f7b733" stroke-width="5"/>
+                <path d="m110 60 10 21 23 3-17 16 4 23-20-11-20 11 4-23-17-16 23-3 10-21Z" fill="#fef3c7"/>
+                <path d="M92 154h36v26H92z" fill="#7c3aed"/>
+                <path d="M65 182h90c9 0 16 7 16 16H49c0-9 7-16 16-16Z" fill="url(#trophyBase)"/>
+                <ellipse cx="110" cy="200" rx="92" ry="11" fill="#4c1d95" opacity=".52"/>
+                <defs>
+                  <linearGradient id="trophyCup" x1="57" x2="163" y1="34" y2="155" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#ffe085"/>
+                    <stop offset=".42" stop-color="#a855f7"/>
+                    <stop offset="1" stop-color="#5b21b6"/>
+                  </linearGradient>
+                  <linearGradient id="trophyBase" x1="49" x2="171" y1="182" y2="202" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#7c3aed"/>
+                    <stop offset=".5" stop-color="#f59e0b"/>
+                    <stop offset="1" stop-color="#6d28d9"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
         </aside>
 
         <!-- Main Form Panel -->
-        <main class="dashboard-main-panel">
-          <div class="main-card stack">
-            <div class="main-card-header">
-              <div class="premium-illustration">
-                <div class="glass-clipboard"></div>
-                <i data-lucide="trophy" class="glass-trophy"></i>
-              </div>
-              <div class="header-text">
-                <h1>
-                  Prepare for <span class="gradient-text">Competition</span>
-                </h1>
-                <p>Prepare your students for an epic learning journey.</p>
-              </div>
-            </div>
-
+        <main class="dashboard-main-panel setup-main-panel">
+          <div class="main-card setup-main-card stack">
             <div class="setup-controls">
-              <div class="modern-tabs">
-                <div id="tabSelect" class="tab active">
-                  <i data-lucide="list" style="width: 16px; height: 16px"></i>
-                  Select Quiz
-                </div>
-                <div id="tabCreate" class="tab">
-                  <i
-                    data-lucide="plus-circle"
-                    style="width: 16px; height: 16px"
-                  ></i>
-                  Create Quiz
-                </div>
-              </div>
-
-              <!-- Tab 1: Select -->
-              <div id="sectionSelect">
-                <div class="quiz-search-wrap">
-                  <div class="quiz-search-input-shell">
-                    <i data-lucide="search" class="search-icon-abs"></i>
-                    <input
-                      id="quizSearchInput"
-                      class="modern-input"
-                      type="text"
-                      placeholder="Search saved quizzes..."
-                      autocomplete="off"
-                    />
-                  </div>
-                  <div id="quizResults"></div>
-                </div>
-              </div>
-
-              <!-- Tab 2: Create -->
-              <div id="sectionCreate" class="create-quiz-panel" style="display: none">
-                <div class="create-top-row">
-                  <input
-                    id="quizTitleInput"
-                    class="modern-input create-title-input"
-                    type="text"
-                    placeholder="Create a title..."
-                    autocomplete="off"
-                  />
-
-                  <div
-                    class="creation-method-toggle"
-                    role="tablist"
-                    aria-label="Quiz creation method"
-                  >
-                    <button
-                      type="button"
-                      class="creation-method-option active"
-                      data-creation-mode="manual"
-                      role="tab"
-                      aria-selected="true"
-                    >
-                      <i data-lucide="pen-line" style="width: 16px; height: 16px"></i>
-                      Manual Quiz Building
+              <section aria-labelledby="selectQuizTitle">
+                <h2 id="selectQuizTitle" class="setup-section-title"><span>Select Quiz</span></h2>
+                <div class="quiz-option-grid">
+                  <article class="setup-choice-card purple">
+                    <div class="setup-illustration" aria-hidden="true">
+                      <svg class="setup-svg" width="184" height="142" viewBox="0 0 184 142" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M34 91c20-12 44-9 58 8 14-17 38-20 58-8V38c-21-11-44-7-58 9-14-16-37-20-58-9v53Z" fill="#f5e7ff" stroke="#9d35ff" stroke-width="4"/>
+                        <path d="M92 47v52" stroke="#7c3aed" stroke-width="4"/>
+                        <path d="M48 55c14-4 25-2 35 5M48 70c13-4 25-2 35 5M105 60c12-5 25-5 38 0M105 75c12-5 25-5 38 0" stroke="#c084fc" stroke-width="4" stroke-linecap="round"/>
+                        <circle cx="82" cy="19" r="18" fill="#6444ff" stroke="#bca7ff" stroke-width="3"/>
+                        <path d="M82 1c-7 9-7 27 0 36M64 19h36M69 8c8 5 18 5 26 0M69 30c8-5 18-5 26 0" stroke="#c7d2fe" stroke-width="2"/>
+                        <path d="M132 27v20M122 37h20" stroke="#facc15" stroke-width="7" stroke-linecap="round"/>
+                        <path d="M27 69h16l-7 29H19l8-29Z" fill="#a78bfa"/>
+                        <path d="M145 44 162 34l10 21-18 9-9-20Z" fill="#7c3aed"/>
+                        <circle cx="134" cy="22" r="11" fill="#facc15"/>
+                      </svg>
+                    </div>
+                    <h3>All Quizzes</h3>
+                    <p>Explore a wide collection of quizzes across different topics.</p>
+                    <button id="tabSelect" type="button" class="setup-card-action active">
+                      Explore All Quizzes
+                      <i data-lucide="chevron-right"></i>
                     </button>
-                    <button
-                      type="button"
-                      class="creation-method-option"
-                      data-creation-mode="ai"
-                      role="tab"
-                      aria-selected="false"
-                    >
-                      <i data-lucide="sparkles" style="width: 16px; height: 16px"></i>
-                      AI Prompt Building
-                    </button>
-                  </div>
+                    <div id="sectionSelect" style="display: none">
+                      <div class="quiz-search-wrap">
+                        <div class="quiz-search-input-shell">
+                          <i data-lucide="search" class="search-icon-abs"></i>
+                          <input
+                            id="quizSearchInput"
+                            class="modern-input"
+                            type="text"
+                            placeholder="Search saved quizzes..."
+                            autocomplete="off"
+                          />
+                        </div>
+                        <div id="quizResults"></div>
+                      </div>
+                    </div>
+                  </article>
 
-                  <select
-                    id="creationMode"
-                    class="method-select-fallback"
-                    aria-hidden="true"
-                    tabindex="-1"
-                  >
-                    <option value="manual">Manual Quiz Builder</option>
-                    <option value="ai">AI Prompt Builder</option>
-                  </select>
+                  <article class="setup-choice-card blue">
+                    <div class="setup-illustration" aria-hidden="true">
+                      <svg class="setup-svg" width="184" height="142" viewBox="0 0 184 142" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M43 45h34l10 13h63c8 0 14 7 13 15l-9 49H40c-8 0-14-7-13-15l7-48c1-8 7-14 15-14Z" fill="url(#folder)" stroke="#60a5fa" stroke-width="4"/>
+                        <path d="M58 25h78c6 0 11 5 11 11v56H47V36c0-6 5-11 11-11Z" fill="#dbeafe" stroke="#3b82f6" stroke-width="4"/>
+                        <path d="M66 43h72M66 59h61M66 75h70" stroke="#60a5fa" stroke-width="5" stroke-linecap="round"/>
+                        <path d="m92 75 9 18 20 3-14 14 3 20-18-9-18 9 3-20-14-14 20-3 9-18Z" fill="#fb923c" stroke="#facc15" stroke-width="3"/>
+                        <defs>
+                          <linearGradient id="folder" x1="31" x2="163" y1="45" y2="122" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#7dd3fc"/>
+                            <stop offset=".52" stop-color="#2563eb"/>
+                            <stop offset="1" stop-color="#0f2f7a"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <h3>Your Quizzes</h3>
+                    <p>View and manage quizzes you created in your classroom.</p>
+                    <button id="viewYourQuizzesBtn" type="button" class="setup-card-action blue">
+                      View Your Quizzes
+                      <i data-lucide="chevron-right"></i>
+                    </button>
+                  </article>
+
+                  <article class="setup-choice-card pink">
+                    <div class="setup-illustration" aria-hidden="true">
+                      <svg class="setup-svg" width="184" height="142" viewBox="0 0 184 142" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="48" y="20" width="88" height="98" rx="12" transform="rotate(7 48 20)" fill="url(#form)" stroke="#c084fc" stroke-width="4"/>
+                        <rect x="64" y="42" width="58" height="21" rx="5" fill="#ddd6fe"/>
+                        <path d="M70 77h45M70 94h35" stroke="#e9d5ff" stroke-width="6" stroke-linecap="round"/>
+                        <rect x="57" y="75" width="12" height="12" rx="3" fill="#ddd6fe"/>
+                        <rect x="57" y="93" width="12" height="12" rx="3" fill="#ddd6fe"/>
+                        <path d="M128 78 155 51c4-4 10-4 14 0l4 4c4 4 4 10 0 14l-27 27-22 7 4-25Z" fill="#fb923c"/>
+                        <path d="m155 51 18 18" stroke="#f9a8d4" stroke-width="6"/>
+                        <defs>
+                          <linearGradient id="form" x1="48" x2="136" y1="20" y2="118" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#a78bfa"/>
+                            <stop offset=".55" stop-color="#7c3aed"/>
+                            <stop offset="1" stop-color="#4c1d95"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <h3>Create Quiz</h3>
+                    <p>Create engaging quizzes in minutes with powerful tools.</p>
+                    <button id="tabCreate" type="button" class="setup-card-action pink">
+                      Create New Quiz
+                      <i data-lucide="chevron-right"></i>
+                    </button>
+                  </article>
                 </div>
-
-                <div id="manualModeForm" class="manual-form">
-                  <div class="manual-builder-toolbar">
-                    <span id="manualQuestionCount" class="question-count-pill">
-                      Questions: 1
-                    </span>
-                  </div>
-
-                  <div id="manualBuilderBody" class="manual-builder-body">
-                    <div
-                      id="manualQuestionsList"
-                      class="manual-questions-list"
-                      aria-live="polite"
-                    ></div>
-                  </div>
-
-                  <div class="form-actions manual-actions">
-                    <button
-                      id="addManualQuestionBtn"
-                      type="button"
-                      class="btn-secondary"
-                    >
-                      <i
-                        data-lucide="plus"
-                        style="width: 16px; height: 16px"
-                      ></i>
-                      Add Next Question
-                    </button>
-                    <button
-                      id="saveManualQuizBtn"
-                      type="button"
-                      class="btn-initialize"
-                      style="margin-top: 0"
-                    >
-                      <i
-                        data-lucide="save"
-                        style="width: 16px; height: 16px"
-                      ></i>
-                      Save Quiz
-                    </button>
-                  </div>
-                  <div
-                    id="manualSaveStatus"
-                    class="builder-status-text"
-                    role="status"
-                  ></div>
-                </div>
-
-                <div
-                  id="importModeGuide"
-                  class="ai-guide"
-                  style="display: none"
-                >
-                  <div class="ai-prompt-grid">
-                    <input
-                      id="aiTopicInput"
-                      class="modern-input"
-                      type="text"
-                      placeholder="Quiz topic"
-                      autocomplete="off"
-                    />
-                    <input
-                      id="aiQuestionCountInput"
-                      class="modern-input"
-                      type="number"
-                      min="1"
-                      max="30"
-                      value="10"
-                      aria-label="Number of questions"
-                    />
-                  </div>
-
-                  <textarea
-                    id="aiPromptText"
-                    class="modern-input ai-prompt-text"
-                    readonly
-                    aria-label="AI prompt"
-                  ></textarea>
-
-                  <div class="form-actions ai-actions">
-                    <button
-                      id="copyAiPromptBtn"
-                      type="button"
-                      class="btn-secondary"
-                    >
-                      <i
-                        data-lucide="copy"
-                        style="width: 16px; height: 16px"
-                      ></i>
-                      Copy Prompt
-                    </button>
-                    <a
-                      id="openImporterBtn"
-                      href="import.html"
-                      class="btn-initialize importer-link"
-                      style="margin-top: 0"
-                    >
-                      <i
-                        data-lucide="wand-sparkles"
-                        style="width: 16px; height: 16px"
-                      ></i>
-                      Open Importer
-                    </a>
-                  </div>
-                  <div
-                    id="aiPromptStatus"
-                    class="builder-status-text"
-                    role="status"
-                  ></div>
-                </div>
-              </div>
+              </section>
 
               <!-- Selected quiz badge -->
               <div id="selectedQuizBadge" class="selected-quiz-badge">
@@ -1187,31 +2141,80 @@
                 </button>
               </div>
 
-              <div class="settings-row">
-                <select id="hostModeSelect" class="modern-input">
-                  <option value="classroom">Classroom Host</option>
-                  <option value="distance">Distance Host</option>
-                </select>
+              <section aria-labelledby="chooseModeTitle">
+                <h2 id="chooseModeTitle" class="setup-section-title"><span>Choose Mode</span></h2>
+                <div class="mode-grid">
+                  <article class="mode-card">
+                    <div class="mode-illustration" aria-hidden="true">
+                      <svg class="setup-svg" width="108" height="96" viewBox="0 0 108 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="15" y="16" width="72" height="45" rx="6" fill="#134e4a" stroke="#34d399" stroke-width="4"/>
+                        <path d="M37 37c12-10 26-10 38 0M45 46c7-6 14-6 22 0" stroke="#34d399" stroke-width="5" stroke-linecap="round"/>
+                        <circle cx="26" cy="78" r="10" fill="#86efac"/>
+                        <circle cx="52" cy="78" r="10" fill="#86efac"/>
+                        <circle cx="78" cy="78" r="10" fill="#86efac"/>
+                        <path d="M12 94c2-9 9-14 16-14s14 5 16 14M38 94c2-9 9-14 16-14s14 5 16 14M64 94c2-9 9-14 16-14s14 5 16 14" fill="#22c55e"/>
+                      </svg>
+                    </div>
+                    <div class="mode-copy">
+                      <h3>Hosting Mode</h3>
+                      <p>Host live quizzes, engage students in real-time and lead the session.</p>
+                      <div class="mode-select-wrap">
+                        <select id="hostModeSelect" class="mode-select modern-input mode-native-select-hidden" aria-label="Hosting Mode">
+                          <option value="classroom">Classroom Host</option>
+                          <option value="distance">Distance Host</option>
+                        </select>
+                      </div>
+                      <button id="startHostingBtn" type="button" class="mode-action" aria-haspopup="listbox" aria-expanded="false">
+                        Start Hosting
+                        <i data-lucide="chevron-right"></i>
+                      </button>
+                    </div>
+                  </article>
 
-                <select id="modeSelect" class="modern-input">
-                  <option value="classic">Classic Mode</option>
-                  <option value="normal">Normal Mode (30s)</option>
-                  <option value="speed">Speed Battle (10s | 2x Bonus)</option>
-                  <option value="survival">
-                    Survival (60s | -200 on Wrong)
-                  </option>
-                </select>
+                  <article class="mode-card blue">
+                    <div class="mode-illustration" aria-hidden="true">
+                      <svg class="setup-svg" width="108" height="96" viewBox="0 0 108 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="11" y="28" width="82" height="54" rx="7" fill="#0b3c92" stroke="#60a5fa" stroke-width="4"/>
+                        <rect x="35" y="13" width="42" height="53" rx="6" fill="#dbeafe" stroke="#60a5fa" stroke-width="4"/>
+                        <path d="M46 29h22M46 42h18M46 55h22" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                        <path d="m42 28 4 4 7-9M42 41l4 4 7-9" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M35 85h30l5 10H30l5-10Z" fill="#1d4ed8"/>
+                      </svg>
+                    </div>
+                    <div class="mode-copy">
+                      <h3>Classic Mode</h3>
+                      <p>Run quizzes in self-paced mode for practice and assessments.</p>
+                      <div class="mode-select-wrap">
+                        <select id="modeSelect" class="mode-select modern-input mode-native-select-hidden" aria-label="Classic Mode">
+                          <option value="classic">Classic Mode</option>
+                          <option value="normal">Normal Mode (30s)</option>
+                          <option value="speed">Speed Battle (10s | 2x Bonus)</option>
+                          <option value="survival">Survival (60s | -200 on Wrong)</option>
+                        </select>
+                      </div>
+                      <button id="startClassicModeBtn" type="button" class="mode-action blue" aria-haspopup="listbox" aria-expanded="false">
+                        Start Classic Mode
+                        <i data-lucide="chevron-right"></i>
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <div class="settings-row setup-hidden-selects" aria-hidden="true">
               </div>
 
-              <div class="cta-wrapper setup-cta-hidden">
-                <button id="createBtn" class="btn-initialize btn-cta">
-                  Initialize Game PIN
-                  <div class="btn-icon-right">
-                    <i
-                      data-lucide="layout-grid"
-                      style="width: 16px; height: 16px"
-                    ></i>
-                  </div>
+              <div class="cta-wrapper setup-cta-hidden setup-pin-cta">
+                <div class="pin-cta-icon" aria-hidden="true">
+                  <i data-lucide="layout-grid" style="width: 28px; height: 28px"></i>
+                </div>
+                <div class="pin-cta-copy">
+                  <h3>Initialize Game PIN</h3>
+                  <p>Start your live quiz session and invite students to join.</p>
+                </div>
+                <button id="createBtn" class="btn-initialize btn-cta generate-pin-action">
+                  <i data-lucide="layout-grid" style="width: 20px; height: 20px"></i>
+                  Generate PIN
                 </button>
               </div>
             </div>

@@ -1,9 +1,16 @@
 import { db, auth, ensureAnonAuth, Fire, GameStatus } from "./firebase.js";
 import { clearForceHomepageNavigation, goHomeSafely, isForceHomepageNavigation } from "./navigation.js";
+import { getEdectraLaunchContext, initializeEdectraLaunchContext } from "./edectra-context.js";
+import { EDECTRA_CLASSROOM_BLOCK_MESSAGE, validateEdectraClassroomMembership } from "./edectra-membership.js";
 const { doc, getDoc, setDoc, onSnapshot, getDocs, collection, query, orderBy } = Fire;
 
 if (isForceHomepageNavigation()) {
     clearForceHomepageNavigation();
+}
+
+const launchParams = new URLSearchParams(window.location.search);
+if (launchParams.has("source") || launchParams.has("classId")) {
+    initializeEdectraLaunchContext();
 }
 
 // Load confetti via CDN
@@ -326,11 +333,36 @@ joinBtn.addEventListener("click", async () => {
         currentPin = pin;
         profile.name = name;
 
+        const membership = await validateEdectraClassroomMembership();
+        if (!membership.allowed) {
+            console.warn("[LiveQuiz][Edectra] Student blocked before Firebase participant creation", {
+                gameId: currentGameId,
+                classId: membership.context?.classId || "",
+                reason: membership.reason
+            });
+            joinStatus.textContent = EDECTRA_CLASSROOM_BLOCK_MESSAGE;
+            return;
+        }
+
+        const edectraContext = getEdectraLaunchContext();
+        const participantData = {
+            name,
+            score: 0,
+            lastEarned: 0
+        };
+
+        if (edectraContext.integrationMode === "edectra-connected") {
+            participantData.source = "edectra";
+            participantData.edectraClassId = edectraContext.classId || "";
+            participantData.edectraStudentId = edectraContext.studentId || "";
+            participantData.edectraUserId = edectraContext.userId || "";
+            participantData.edectraMembershipValidated = membership.validated === true && membership.allowed === true;
+            participantData.edectraMembershipValidationReason = membership.reason || "";
+        }
+
         // Register student
         console.info("[LiveQuiz] Student write started", { gameId: currentGameId });
-        await setDoc(doc(db, "games", currentGameId, "players", user.uid), {
-            name, score: 0, lastEarned: 0
-        }, { merge: true });
+        await setDoc(doc(db, "games", currentGameId, "players", user.uid), participantData, { merge: true });
         console.info("[LiveQuiz] Student write success", { gameId: currentGameId });
 
         welcomeName.textContent = name;
@@ -602,18 +634,10 @@ async function showFinalResults() {
         }
     });
 
-    if (!latestGameData) {
-        const gameSnap = await getDoc(doc(db, "games", currentGameId));
-        latestGameData = gameSnap.data();
-    }
-
-    if (!currentQuizData && latestGameData?.quizId) {
-        const quizSnap = await getDoc(doc(db, "quizzes", latestGameData.quizId));
-        currentQuizData = quizSnap.data();
-    }
-
-    const accuracyByUid = await buildAccuracyMap();
-    const enrichedPlayers = players.map(p => ({ ...p, accuracy: accuracyByUid[p.id] ?? null }));
+    const enrichedPlayers = players.map(p => ({
+        ...p,
+        accuracy: Number.isFinite(Number(p.accuracy)) ? Number(p.accuracy) : null
+    }));
     const rankText = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `#${rank}`;
     finalRank.textContent = rankText;
     finalScore.textContent = score.toLocaleString();
@@ -634,29 +658,6 @@ async function showFinalResults() {
             window.confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
         }, 250);
     }
-}
-
-async function buildAccuracyMap() {
-    const result = {};
-    if (!currentQuizData?.questions?.length) return result;
-
-    const answersSnap = await getDocs(collection(db, "games", currentGameId, "answers"));
-    const totals = {};
-
-    answersSnap.forEach((d) => {
-        const ans = d.data();
-        const q = currentQuizData.questions[ans.qIndex];
-        if (!ans.uid || !q) return;
-        if (!totals[ans.uid]) totals[ans.uid] = { answered: 0, correct: 0 };
-        totals[ans.uid].answered += 1;
-        if (ans.index === q.correctIndex) totals[ans.uid].correct += 1;
-    });
-
-    Object.entries(totals).forEach(([uid, stat]) => {
-        result[uid] = stat.answered ? Math.round((stat.correct / stat.answered) * 100) : null;
-    });
-
-    return result;
 }
 
 function renderFinalLeaderboard(players) {

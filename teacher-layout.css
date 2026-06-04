@@ -1002,18 +1002,21 @@ body[data-host-view="lobby"] .reset-host-session-control {
 /* PC specific */
 @media (min-width: 768px) {
   body {
-    overflow: hidden; /* no-scroll desktop layout */
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .dashboard-layout {
-    height: 100vh;
+    min-height: 100vh;
+    height: auto;
     padding: 30px 20px;
   }
 
   .dashboard-content-wrapper {
     flex-direction: row;
     align-items: stretch;
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
+    height: auto;
   }
   
   .dashboard-left-panel {

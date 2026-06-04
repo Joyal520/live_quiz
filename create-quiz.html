@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Create Quiz - EdTechra Live Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="quiz-pages.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="page-header">
+        <div class="header-main">
+          <a class="back-pill" href="host.html">
+            <i data-lucide="arrow-left"></i>
+            Back
+          </a>
+          <div class="title-block">
+            <h1>Create Quiz</h1>
+            <p>Build engaging quizzes in minutes with powerful tools.</p>
+          </div>
+        </div>
+        <a class="ghost-pill" href="your-quizzes.html">
+          <i data-lucide="folder-open"></i>
+          Your Quizzes
+        </a>
+      </header>
+
+      <main class="glass-panel">
+        <form id="createQuizForm" class="create-form">
+          <div class="form-top">
+            <input id="quizTitleInput" class="field" type="text" placeholder="Quiz title" autocomplete="off" required />
+            <select id="creationMode" class="select-field" aria-label="Quiz creation mode">
+              <option value="manual">Manual Quiz Building</option>
+              <option value="ai">AI Prompt Building</option>
+            </select>
+          </div>
+
+          <section id="manualModeForm" class="create-form">
+            <div id="questionList" class="question-list"></div>
+            <div class="form-actions">
+              <button id="addQuestionBtn" type="button" class="ghost-pill">
+                <i data-lucide="plus"></i>
+                Add Question
+              </button>
+              <button id="saveQuizBtn" type="submit" class="primary-pill pink">
+                <i data-lucide="save"></i>
+                Save Quiz
+              </button>
+            </div>
+          </section>
+
+          <section id="aiModeForm" class="create-form" style="display:none">
+            <div class="form-top">
+              <input id="aiTopicInput" class="field" type="text" placeholder="Quiz topic" autocomplete="off" />
+              <input id="aiQuestionCountInput" class="field" type="number" min="1" max="30" value="10" aria-label="Number of questions" />
+            </div>
+            <textarea id="aiPromptText" class="field" rows="9" readonly aria-label="AI prompt"></textarea>
+            <div class="form-actions">
+              <button id="copyAiPromptBtn" type="button" class="ghost-pill">
+                <i data-lucide="copy"></i>
+                Copy Prompt
+              </button>
+              <a class="primary-pill" href="import.html">
+                <i data-lucide="wand-sparkles"></i>
+                Open Importer
+              </a>
+            </div>
+          </section>
+
+          <div id="createStatus" class="status-text" role="status"></div>
+        </form>
+      </main>
+    </div>
+
+    <script type="module" src="create-quiz.js"></script>
+  </body>
+</html>

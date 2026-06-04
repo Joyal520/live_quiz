@@ -209,6 +209,17 @@
 
   <audio id="sfxCorrect" src="https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3" preload="auto"></audio>
   <audio id="sfxWrong" src="https://assets.mixkit.co/active_storage/sfx/1115/1115-preview.mp3" preload="auto"></audio>
-  <script type="module" src="join.js?v=student-timer-visible-20260511"></script>
+  <script>
+    window.LiveQuizSupabase = {
+      url: "https://scwvbyfnnufnlimbswnk.supabase.co",
+      anonKey: "sb_publishable_C2V14zNYsM-H5jtRZOQahw_yxdhpV9z",
+      membershipValidation: {
+        rpc: "validate_live_quiz_class_membership"
+      }
+    };
+
+    console.log("LiveQuiz Supabase config ready");
+  </script>
+  <script type="module" src="join.js?v=edectra-membership-20260514"></script>
 </body>
 </html>

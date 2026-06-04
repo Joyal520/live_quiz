@@ -1,0 +1,25 @@
+{
+  "name": "livequiz-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server -p 5500 -c-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joyal520/live_quiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Joyal520/live_quiz/issues"
+  },
+  "homepage": "https://github.com/Joyal520/live_quiz#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
