@@ -26,16 +26,19 @@ function parseMembershipResponse(value) {
 }
 
 function buildRpcBody(context) {
+    const profileId = context.profileId || context.profile_id || "";
     return {
-        class_id: context.classId,
-        student_id: context.studentId || null,
+        class_id: context.classroomId || context.classId,
+        student_id: context.studentId || context.student_id || profileId || null,
+        profile_id: profileId || null,
         user_id: context.userId || null
     };
 }
 
 function getValidationIdentity(context) {
-    if (context.studentId) return { type: "studentId", value: context.studentId };
-    if (context.userId) return { type: "userId", value: context.userId };
+    if (context.profileId || context.profile_id) return { type: "profileId", value: context.profileId || context.profile_id };
+    if (context.studentId || context.student_id) return { type: "studentId", value: context.studentId || context.student_id };
+    if (context.userId || context.user_id) return { type: "userId", value: context.userId || context.user_id };
     return null;
 }
 
@@ -71,7 +74,7 @@ export async function validateEdectraClassroomMembership() {
     }
 
     const context = getEdectraLaunchContext();
-    if (!context.classId) {
+    if (!(context.classroomId || context.classId)) {
         return { allowed: true, validated: false, reason: "missing-class-id" };
     }
 
