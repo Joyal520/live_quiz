@@ -1282,6 +1282,69 @@ body.host-routing-to-lobby {
   .lobby-feature-strip { display: none; }
 }
 
+/* Mobile scroll performance: reduce repaint-heavy effects without changing layout. */
+@media (max-width: 768px) {
+  .blob,
+  .liquid-particle {
+    display: none !important;
+  }
+
+  .liquid-bg {
+    position: absolute;
+  }
+
+  .dashboard-main-panel,
+  .info-block,
+  .host-back-button,
+  .reset-host-session-control,
+  .lobby-main-panel,
+  .lobby-side-panel,
+  .player-status-card,
+  .lobby-card,
+  .live-host-screen,
+  .question-stage-card,
+  .answer-option-card,
+  .podium-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dashboard-main-panel,
+  .info-block,
+  .lobby-main-panel,
+  .lobby-side-panel,
+  .player-status-card,
+  .lobby-card {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+  }
+
+  .btn-icon-back,
+  .host-back-button,
+  .btn-cta,
+  .btn-cta-start,
+  .reset-host-session-control,
+  .answer-option-card,
+  .leaderboard-row,
+  .player-row {
+    transition-duration: 120ms !important;
+  }
+
+  .btn-icon-back:hover,
+  .host-back-button:hover,
+  .btn-cta:hover,
+  .btn-cta-start:hover,
+  .reset-host-session-control:hover {
+    transform: none !important;
+  }
+
+  .player-row,
+  .leaderboard-row,
+  .answer-option-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 64px;
+  }
+}
+
 /* Actions */
 .lobby-actions {
   display: flex;

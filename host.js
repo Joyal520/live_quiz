@@ -472,9 +472,20 @@ window.addEventListener("pagehide", () => {
 });
 
 // -- DOM -----------------------------------------------------------------------
+const HostView = Object.freeze({
+    SETUP: "setup",
+    HOST: "host",
+    QUESTION: "question",
+    PODIUM: "podium"
+});
+
+const viewSetupEl = document.getElementById("view-setup");
+const viewHostEl = document.getElementById("view-lobby");
 const views = {
-    setup: document.getElementById("view-setup"),
-    lobby: document.getElementById("view-lobby"),
+    setup: viewSetupEl,
+    host: viewHostEl,
+    // Keep the old key for existing lobby helpers while the rendered state is "host".
+    lobby: viewHostEl,
     question: document.getElementById("view-question"),
     podium: document.getElementById("view-podium")
 };
@@ -514,6 +525,7 @@ document.querySelectorAll("[data-live-back]").forEach((button) => {
 let hostLoadingEl = null;
 
 function showHostLoading(message = "Restoring host session...") {
+    document.body.dataset.hostView = "loading";
     Object.values(views).forEach(v => {
         if (v) v.style.display = "none";
     });
@@ -1459,33 +1471,38 @@ async function loadQuizzes() {
 }
 
 // -- View Switching ------------------------------------------------------------
-function showView(viewId) {
-    // Hide ALL views including any loading overlays
-    Object.values(views).forEach(v => { if (v) v.style.display = "none"; });
-    hideHostLoading();
-    document.body.dataset.hostView = viewId;
+function normalizeHostView(viewId) {
+    return viewId === "lobby" ? HostView.HOST : viewId;
+}
 
-    if (views[viewId]) {
-        views[viewId].style.display = "flex";
+function showView(viewId) {
+    const normalizedViewId = normalizeHostView(viewId);
+    // Hide ALL views including any loading overlays
+    [...new Set(Object.values(views))].forEach(v => { if (v) v.style.display = "none"; });
+    hideHostLoading();
+    document.body.dataset.hostView = normalizedViewId;
+
+    if (views[normalizedViewId]) {
+        views[normalizedViewId].style.display = "flex";
     }
 
     // Stop lobby music when entering any game phase
-    if (viewId !== "setup" && viewId !== "lobby") {
+    if (normalizedViewId !== HostView.SETUP && normalizedViewId !== HostView.HOST) {
         sounds.lobby.pause();
         sounds.lobby.currentTime = 0;
     }
 
-    if (viewId === "lobby") {
+    if (normalizedViewId === HostView.HOST) {
         stopAllBg(); // Clear all including game music if we're back in lobby
         sounds.lobby.play().catch(() => { });
     }
 
-    if (viewId === "question" && lbUnsubscribe) {
+    if (normalizedViewId === HostView.QUESTION && lbUnsubscribe) {
         lbUnsubscribe();
         lbUnsubscribe = null;
     }
 
-    console.info("[LiveQuiz][Host] showView", viewId);
+    console.info("[LiveQuiz][Host] showView", normalizedViewId);
 }
 
 function enterLobbyView() {

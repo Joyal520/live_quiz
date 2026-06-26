@@ -39,12 +39,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: var(--font-main);
   color: var(--text-bright);
   background: var(--bg-deep);
   min-height: 100vh;
+  max-width: 100%;
   overflow-x: hidden;
 }
 
@@ -529,6 +535,52 @@ body.app-shell-active > .edtechra-liquid-bg {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile performance pass: keep layout and flow intact while reducing scroll paint cost. */
+@media (max-width: 768px) {
+  .liquid-bg::before,
+  .liquid-bg::after,
+  .edtechra-liquid-bg::before,
+  .edtechra-liquid-bg::after {
+    animation: none !important;
+    filter: none !important;
+    opacity: 0.38;
+  }
+
+  .aurora,
+  .bg-overlay {
+    position: absolute;
+  }
+
+  .glass-card,
+  .fullscreen-header-btn {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-small,
+  .modern-input,
+  .leaderboard-item,
+  .lb-row {
+    transition-duration: 120ms !important;
+  }
+
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .fullscreen-header-btn:hover {
+    transform: none !important;
+  }
+
+  .leaderboard-item,
+  .lb-row,
+  .player-pill {
+    content-visibility: auto;
+    contain-intrinsic-size: 56px;
   }
 }
 

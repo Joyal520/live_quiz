@@ -688,6 +688,45 @@
         margin: 50px auto 20px;
       }
     }
+
+    /* Mobile performance pass: reduce scroll paint cost without changing routes. */
+    @media (max-width: 768px) {
+      .beta-alert,
+      .modal-backdrop,
+      .modal-card,
+      .card,
+      .mobile-features {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      .beta-alert,
+      .modal-card,
+      .card,
+      .feature-item,
+      .mobile-features {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+      }
+
+      .card,
+      .teacher-btn,
+      .student-btn,
+      .feature-item {
+        transition-duration: 120ms !important;
+      }
+
+      .card:hover,
+      .teacher-btn:hover,
+      .student-btn:hover {
+        transform: none !important;
+      }
+
+      .card,
+      .feature-item {
+        content-visibility: auto;
+        contain-intrinsic-size: 170px;
+      }
+    }
   </style>
 </head>
 <body>
