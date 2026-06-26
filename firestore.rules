@@ -39,6 +39,27 @@ service cloud.firestore {
       ];
     }
 
+    function liveQuizPlayerCreateFields() {
+      return [
+        'name',
+        'score',
+        'lastEarned',
+        'source',
+        'edectraClassId',
+        'edectraStudentId',
+        'edectraProfileId',
+        'edectraUserId',
+        'edectraMembershipValidated',
+        'edectraMembershipValidationReason'
+      ];
+    }
+
+    function liveQuizPlayerSelfUpdateFields() {
+      return [
+        'name'
+      ];
+    }
+
     // Existing MCQ quiz collections.
     match /quizzes/{quizId} {
       allow read, create: if true;
@@ -54,9 +75,23 @@ service cloud.firestore {
 
       match /players/{playerId} {
         allow read: if true;
-        allow create: if request.auth.uid == playerId
-                      && request.resource.data.score == 0;
-        allow update: if get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid;
+        allow create: if signedIn()
+                      && request.auth.uid == playerId
+                      && request.resource.data.keys().hasOnly(liveQuizPlayerCreateFields())
+                      && request.resource.data.name is string
+                      && request.resource.data.score == 0
+                      && request.resource.data.lastEarned == 0;
+        allow update: if (
+                        signedIn()
+                        && get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid
+                      )
+                      || (
+                        signedIn()
+                        && request.auth.uid == playerId
+                        && request.resource.data.name is string
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(liveQuizPlayerSelfUpdateFields())
+                      );
       }
 
       match /answers/{answerId} {

@@ -345,6 +345,8 @@ joinBtn.addEventListener("click", async () => {
         }
 
         const edectraContext = getEdectraLaunchContext();
+        const playerRef = doc(db, "games", currentGameId, "players", user.uid);
+        const playerSnap = await getDoc(playerRef);
         const participantData = {
             name,
             score: 0,
@@ -363,7 +365,7 @@ joinBtn.addEventListener("click", async () => {
 
         // Register student
         console.info("[LiveQuiz] Student write started", { gameId: currentGameId });
-        await setDoc(doc(db, "games", currentGameId, "players", user.uid), participantData, { merge: true });
+        await setDoc(playerRef, playerSnap.exists() ? { name } : participantData, { merge: true });
         console.info("[LiveQuiz] Student write success", { gameId: currentGameId });
 
         welcomeName.textContent = name;
