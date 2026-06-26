@@ -157,6 +157,35 @@
             max-width: 400px;
             line-height: 1.6;
         }
+
+        /* Mobile/reduced-power performance pass for typing student surfaces. */
+        @media (max-width: 768px) {
+            .aurora,
+            .bg-overlay {
+                display: none !important;
+            }
+
+            .glass-card,
+            .lock-overlay {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+            }
+
+            .animate-pulse {
+                animation: none !important;
+            }
+
+            .glass-card,
+            .modern-input,
+            .btn-primary {
+                transition-duration: 120ms !important;
+            }
+
+            .btn-primary:hover {
+                transform: none !important;
+            }
+        }
     </style>
 </head>
 

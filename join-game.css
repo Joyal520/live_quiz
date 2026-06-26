@@ -1316,3 +1316,56 @@ body {
     touch-action: manipulation;
   }
 }
+
+/* Mobile performance pass: reduce animation and paint cost during scrolling/gameplay. */
+@media (max-width: 768px) {
+  .shape {
+    display: none;
+  }
+
+  .timer-ring .ring-fg,
+  .fb-icon,
+  .end-rank {
+    filter: none;
+  }
+
+  .game-entry-card,
+  .student-game-view .header-pill,
+  .student-game-view .header-brand,
+  .student-game-view .header-players,
+  .student-game-view .distance-mode-wrap,
+  .student-game-view .tip-footer,
+  .student-game-view .locked-footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .main-lobby-card,
+  .game-entry-card,
+  .student-game-view .distance-mode-wrap,
+  .student-game-view .distance-card,
+  .student-game-view .tip-footer,
+  .student-game-view .locked-footer {
+    box-shadow: 0 12px 28px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+  }
+
+  .classroom-btn,
+  .distance-card,
+  .game-input,
+  .game-btn,
+  .avatar-preview,
+  .student-game-view .distance-card {
+    transition-duration: 120ms !important;
+  }
+
+  .game-btn:hover {
+    transform: none;
+  }
+
+  .distance-card,
+  .student-game-view .distance-card,
+  .fb-answer-item {
+    content-visibility: auto;
+    contain-intrinsic-size: 64px;
+  }
+}

@@ -1209,6 +1209,52 @@
         transition-duration: 1ms !important;
       }
     }
+
+    /* Mobile performance pass: reduce expensive blur/glow repaints while scrolling. */
+    @media (max-width: 920px) {
+      body::before,
+      body::after {
+        display: none;
+      }
+
+      .control-room {
+        animation: none !important;
+      }
+
+      .topbar,
+      .panel,
+      .pin-section,
+      .toast {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.26), var(--inner-light) !important;
+      }
+
+      .icon-btn,
+      .ghost-btn,
+      .primary-btn,
+      .language-pill,
+      .player-row {
+        transition-duration: 120ms !important;
+      }
+
+      .icon-btn:hover,
+      .ghost-btn:hover,
+      .primary-btn:hover,
+      .language-pill:hover {
+        transform: none !important;
+      }
+
+      .pin-section::after {
+        animation: none !important;
+        opacity: 0.22;
+      }
+
+      .player-row {
+        content-visibility: auto;
+        contain-intrinsic-size: 60px;
+      }
+    }
   </style>
 </head>
 

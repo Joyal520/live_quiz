@@ -1226,6 +1226,11 @@
         color: rgba(245, 246, 255, 0.78);
       }
 
+      #hostSetupStatus {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
       .btn-cta.generate-pin-action {
         width: auto !important;
         height: 58px !important;
@@ -1748,6 +1753,325 @@
 
         .btn-cta.generate-pin-action {
           width: 100% !important;
+        }
+      }
+
+      @media (max-width: 899px) {
+        #view-setup.dashboard-layout::before,
+        #view-setup .dashboard-main-panel::before,
+        .dashboard-layout::before,
+        .liquid-bg .blob,
+        .liquid-bg .liquid-particle {
+          display: none !important;
+        }
+
+        #view-setup.dashboard-layout {
+          background:
+            radial-gradient(circle at 12% 10%, rgba(125, 42, 255, 0.18), transparent 18rem),
+            radial-gradient(circle at 92% 22%, rgba(37, 99, 235, 0.14), transparent 18rem),
+            linear-gradient(132deg, #09051f 0%, #04091d 48%, #061436 100%) !important;
+        }
+
+        #view-setup .dashboard-main-panel,
+        #view-setup .setup-choice-card,
+        #view-setup .mode-grid,
+        #view-setup .mode-card,
+        #view-setup .setup-pin-cta {
+          backdrop-filter: none !important;
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28) !important;
+        }
+
+        #view-setup .setup-svg,
+        #view-setup .glass-trophy {
+          filter: none !important;
+        }
+
+        #view-setup .setup-choice-card,
+        #view-setup .setup-card-action,
+        #view-setup .mode-action,
+        #view-setup .btn-cta {
+          transition: none !important;
+        }
+
+        #view-setup .setup-choice-card:hover,
+        #view-setup .setup-card-action:hover,
+        #view-setup .mode-action:hover,
+        #view-setup .btn-cta:hover {
+          transform: none !important;
+        }
+
+        #view-setup .setup-pin-cta {
+          display: flex !important;
+          flex-direction: column;
+          align-items: stretch;
+          justify-content: flex-start;
+          gap: 12px;
+          text-align: left;
+        }
+
+        #view-setup .pin-cta-copy {
+          width: 100%;
+          min-width: 0;
+        }
+
+        #view-setup .pin-cta-copy h3,
+        #view-setup .pin-cta-copy p {
+          text-align: left;
+        }
+
+        #view-setup .btn-cta.generate-pin-action {
+          width: 100% !important;
+          min-width: 0 !important;
+          align-self: stretch;
+          justify-content: center !important;
+          text-align: center;
+          border-radius: 999px !important;
+        }
+
+        #view-setup #hostSetupStatus {
+          width: 100%;
+          margin-top: 0 !important;
+          text-align: center !important;
+          line-height: 1.35;
+        }
+      }
+
+      /* Hard view isolation: mobile lobby CSS must never reveal the PIN view below setup. */
+      body:not([data-host-view="host"]) #view-lobby,
+      body:not([data-host-view="setup"]) #view-setup,
+      body:not([data-host-view="question"]) #view-question,
+      body:not([data-host-view="podium"]) #view-podium {
+        display: none !important;
+      }
+
+      body[data-host-view="setup"] #view-setup,
+      body[data-host-view="host"] #view-lobby,
+      body[data-host-view="question"] #view-question,
+      body[data-host-view="podium"] #view-podium {
+        display: flex !important;
+      }
+
+      @media (max-width: 768px) {
+        html,
+        body {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden !important;
+        }
+
+        #view-setup.dashboard-layout {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 100dvh;
+          padding: 16px !important;
+          overflow-x: hidden !important;
+        }
+
+        #view-setup .dashboard-top-nav.setup-top-nav {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px;
+          width: 100%;
+          margin-bottom: 16px;
+        }
+
+        #view-setup .host-nav-left {
+          width: 100%;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: nowrap;
+        }
+
+        #view-setup .setup-language-wrap,
+        #view-setup .dashboard-left-panel,
+        #view-setup .setup-trophy-scene {
+          display: none !important;
+        }
+
+        #view-setup .setup-title-lockup {
+          width: 100%;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 12px;
+        }
+
+        #view-setup .setup-title-icon {
+          width: 52px;
+          height: 52px;
+        }
+
+        #view-setup .setup-title-icon .glass-clipboard {
+          width: 36px !important;
+          height: 44px !important;
+        }
+
+        #view-setup .setup-title-icon .glass-trophy {
+          width: 18px !important;
+          height: 18px !important;
+          right: 4px;
+          bottom: 6px;
+        }
+
+        #view-setup .setup-title-text h1 {
+          white-space: normal;
+          font-size: clamp(1.6rem, 8vw, 2rem);
+          line-height: 1.08;
+        }
+
+        #view-setup .setup-title-text p {
+          max-width: none;
+          font-size: 0.86rem;
+          line-height: 1.35;
+        }
+
+        #view-setup .dashboard-content-wrapper.setup-shell {
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          justify-items: center;
+          gap: 16px !important;
+          width: 100%;
+          max-width: 420px;
+          margin: 0 auto;
+        }
+
+        #view-setup .dashboard-main-panel.setup-main-panel {
+          width: 100%;
+          max-width: 420px;
+          min-width: 0;
+          padding: 14px !important;
+          border-radius: 20px !important;
+          overflow: hidden !important;
+        }
+
+        #view-setup .main-card.setup-main-card,
+        #view-setup .setup-controls {
+          width: 100%;
+          min-width: 0;
+          gap: 16px !important;
+        }
+
+        #view-setup .setup-section-title {
+          margin: 0 0 12px;
+          gap: 8px;
+          font-size: 1.22rem;
+          line-height: 1.15;
+        }
+
+        #view-setup .setup-section-title::before,
+        #view-setup .setup-section-title::after,
+        #view-setup .setup-section-title span::before,
+        #view-setup .setup-section-title span::after {
+          display: none;
+        }
+
+        #view-setup .quiz-option-grid,
+        #view-setup .mode-grid {
+          grid-template-columns: 1fr !important;
+          width: 100%;
+          max-width: 420px;
+          gap: 14px;
+          margin: 0 auto;
+        }
+
+        #view-setup .mode-grid {
+          padding: 12px;
+          border-radius: 18px;
+        }
+
+        #view-setup .setup-choice-card,
+        #view-setup .mode-card,
+        #view-setup .setup-pin-cta {
+          width: 100%;
+          max-width: 420px;
+          min-width: 0;
+          margin-inline: auto;
+          box-sizing: border-box;
+        }
+
+        #view-setup .setup-choice-card {
+          min-height: 0;
+          padding: 16px;
+          border-radius: 18px;
+        }
+
+        #view-setup .setup-illustration {
+          height: 76px;
+          margin-bottom: 12px;
+        }
+
+        #view-setup .setup-illustration .setup-svg {
+          width: auto;
+          max-width: 118px;
+          max-height: 82px;
+        }
+
+        #view-setup .setup-choice-card h3,
+        #view-setup .mode-copy h3,
+        #view-setup .pin-cta-copy h3 {
+          font-size: 1.12rem;
+        }
+
+        #view-setup .setup-choice-card p,
+        #view-setup .mode-copy p,
+        #view-setup .pin-cta-copy p {
+          min-height: 0;
+          margin-bottom: 12px;
+          font-size: 0.86rem;
+          line-height: 1.4;
+        }
+
+        #view-setup .mode-card {
+          grid-template-columns: 1fr;
+          gap: 12px;
+          justify-items: center;
+          padding: 14px;
+          text-align: center;
+          border-radius: 16px;
+        }
+
+        #view-setup .mode-illustration .setup-svg {
+          width: 72px;
+          height: 64px;
+        }
+
+        #view-setup .setup-card-action,
+        #view-setup .mode-action,
+        #view-setup .btn-cta.generate-pin-action {
+          width: 100% !important;
+          max-width: 100%;
+          min-width: 0;
+          min-height: 48px;
+          height: auto !important;
+          padding: 12px 16px !important;
+          white-space: normal;
+        }
+
+        #view-setup .setup-pin-cta {
+          grid-template-columns: 1fr;
+          justify-items: stretch;
+          gap: 12px;
+          padding: 16px;
+          border-radius: 18px;
+          text-align: left;
+        }
+
+        #view-setup .pin-cta-icon {
+          display: none;
+        }
+
+        body[data-host-view="host"] #view-lobby {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 100dvh;
+          padding: 16px !important;
+          overflow-x: hidden !important;
+        }
+
+        body[data-host-view="host"] #view-lobby .lobby-main-panel,
+        body[data-host-view="host"] #view-lobby .lobby-side-panel {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
         }
       }
 

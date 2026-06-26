@@ -603,6 +603,46 @@
             transform: scale(1.12);
             background: rgba(99, 102, 241, 0.4);
         }
+
+        /* Mobile/reduced-power performance pass for typing host surfaces. */
+        @media (max-width: 768px) {
+            .aurora,
+            .bg-overlay {
+                display: none !important;
+            }
+
+            .glass-card,
+            .fullscreen-fab {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+            }
+
+            .header-shine,
+            .timer-ring,
+            .live-dot,
+            .winner-fx {
+                animation: none !important;
+                filter: none !important;
+            }
+
+            .fullscreen-fab,
+            .podium-spot,
+            .race-lane,
+            .leaderboard-row {
+                transition-duration: 120ms !important;
+            }
+
+            .fullscreen-fab:hover {
+                transform: none !important;
+            }
+
+            .race-lane,
+            .leaderboard-row {
+                content-visibility: auto;
+                contain-intrinsic-size: 58px;
+            }
+        }
     </style>
 </head>
 
