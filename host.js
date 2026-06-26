@@ -1073,12 +1073,22 @@ function clearSelection() {
 
 function getPendingSelectedQuizId(params) {
     const routeQuizId = params.get("quizId");
-    if (routeQuizId) return routeQuizId;
+    if (routeQuizId) {
+        console.info("[LiveQuiz][Host] quizId source: URL param →", routeQuizId);
+        return routeQuizId;
+    }
 
     try {
         const stored = JSON.parse(localStorage.getItem("edtechra_selected_quiz") || "null");
-        return stored?.id || "";
+        const storageId = stored?.id || "";
+        if (storageId) {
+            console.info("[LiveQuiz][Host] quizId source: localStorage →", storageId);
+        } else {
+            console.info("[LiveQuiz][Host] quizId source: none (no URL param, no stored selection)");
+        }
+        return storageId;
     } catch {
+        console.warn("[LiveQuiz][Host] localStorage: unavailable (sandboxed iframe), no stored quizId");
         return "";
     }
 }
@@ -1086,8 +1096,9 @@ function getPendingSelectedQuizId(params) {
 function clearPendingSelectedQuiz() {
     try {
         localStorage.removeItem("edtechra_selected_quiz");
+        console.info("[LiveQuiz][Host] Cleared pending quiz selection from localStorage");
     } catch {
-        // Storage can be unavailable in stricter browser contexts.
+        console.warn("[LiveQuiz][Host] localStorage: unavailable, could not clear pending selection");
     }
 }
 
