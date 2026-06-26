@@ -2,9 +2,9 @@ import { getEdectraLaunchContext, isEdectraConnected } from "./edectra-context.j
 
 const SYNC_SUCCESS_PREFIX = "livequiz.edectraScoreSync.success";
 const pendingSyncs = new Set();
-
-const SUPABASE_URL = window.LiveQuizSupabase?.url || "";
-const SUPABASE_ANON_KEY = window.LiveQuizSupabase?.anonKey || "";
+const EDTECHRA_SCORE_SYNC_ENDPOINT = window.EDTECHRA_SCORE_SYNC_ENDPOINT
+    || window.LiveQuizSupabase?.scoreSyncEndpoint
+    || "/api/live-quiz-score-sync";
 
 function getSyncKey(classId, gameId) {
     return `${SYNC_SUCCESS_PREFIX}.${classId}.${gameId}`;
@@ -26,13 +26,21 @@ function markSyncCompleted(syncKey) {
     }
 }
 
-function hasSupabaseConfig() {
-    return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-}
-
 function toNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : 0;
+}
+
+function getUrlSyncEndpoint() {
+    try {
+        return new URLSearchParams(window.location.search).get("syncEndpoint")?.trim() || "";
+    } catch {
+        return "";
+    }
+}
+
+function getScoreSyncEndpoint(context = {}) {
+    return context.syncEndpoint || getUrlSyncEndpoint() || EDTECHRA_SCORE_SYNC_ENDPOINT;
 }
 
 export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, totalQuestions, statsByStudentId = {} }) {
@@ -42,7 +50,7 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
     }
 
     const context = getEdectraLaunchContext();
-    const classId = context.classId;
+    const classId = context.classroomId || context.classId;
 
     if (!classId || !gameId) {
         console.info("[LiveQuiz][Edectra] sync skipped", { reason: "missing classId or gameId", classId, gameId });
@@ -58,8 +66,8 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
     console.info("[LiveQuiz][Edectra] sync started", { classId, gameId, pin });
 
     const safeTotalQuestions = toNumber(totalQuestions);
-    const eligibleLeaderboard = leaderboard.filter((student) => {
-        if (student.source !== "edectra") return false;
+    const eligibleLeaderboard = leaderboard.map((student, index) => ({ ...student, finalRank: index + 1 })).filter((student) => {
+        if (!["edectra", "edtechra"].includes(String(student.source || "").toLowerCase())) return false;
         if (student.edectraMembershipValidated !== true) {
             console.warn("[LiveQuiz][Edectra] result row skipped because membership was not validated", {
                 firebaseStudentId: student.id,
@@ -67,61 +75,57 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
             });
             return false;
         }
-        return Boolean(student.edectraStudentId || student.edectraUserId);
+        return Boolean(student.edectraProfileId || student.edectraStudentId || student.edectraUserId);
     });
 
-    const rows = eligibleLeaderboard.map((student) => {
+    const results = eligibleLeaderboard.map((student) => {
         const stats = statsByStudentId[student.id] || {};
         const correctCount = toNumber(stats.correctCount);
         const wrongCount = toNumber(stats.wrongCount);
         const accuracy = safeTotalQuestions > 0
             ? Math.round((correctCount / safeTotalQuestions) * 100)
             : toNumber(stats.accuracy);
+        const profileId = student.edectraProfileId || student.edectraStudentId || student.edectraUserId || "";
 
         return {
-            class_id: classId,
-            source: context.source || "edectra",
-            firebase_game_id: gameId,
-            firebase_pin: pin || "",
-            student_id: student.edectraStudentId || student.edectraUserId,
+            student_id: student.edectraStudentId || profileId,
+            profile_id: profileId,
             student_name: student.name || "",
             score: toNumber(student.score),
             correct_count: correctCount,
             wrong_count: wrongCount,
             total_questions: safeTotalQuestions,
-            accuracy
+            accuracy,
+            final_rank: student.finalRank
         };
     });
 
-    console.info("[LiveQuiz][Edectra] number of results being synced", rows.length);
+    console.info("[LiveQuiz][Edectra] number of results being synced", results.length);
 
-    if (rows.length === 0) {
+    if (results.length === 0) {
         console.warn("[LiveQuiz][Edectra] sync skipped", { reason: "no validated Edectra students", classId, gameId });
         return { skipped: true, reason: "no validated Edectra students" };
     }
 
-    if (!hasSupabaseConfig()) {
-        const error = new Error("Missing Supabase anon configuration.");
-        console.error("[LiveQuiz][Edectra] sync failure", {
-            message: error.message,
-            hasUrl: Boolean(SUPABASE_URL),
-            hasAnonKey: Boolean(SUPABASE_ANON_KEY)
-        });
-        return { success: false, error };
-    }
-
     pendingSyncs.add(syncKey);
     try {
-        const endpoint = `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/live_quiz_results?on_conflict=class_id,firebase_game_id,student_id`;
+        const endpoint = getScoreSyncEndpoint(context);
+        const payload = {
+            classroom_id: classId,
+            teacher_id: context.teacherId || context.teacher_id || "",
+            live_quiz_session_id: gameId,
+            firebase_game_id: gameId,
+            quiz_id: context.quizId || context.quiz_id || "",
+            source: "edtechra-live-quiz",
+            results
+        };
+
         const response = await fetch(endpoint, {
             method: "POST",
             headers: {
-                apikey: SUPABASE_ANON_KEY,
-                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                "Content-Type": "application/json",
-                Prefer: "resolution=merge-duplicates"
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(rows)
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
@@ -135,10 +139,11 @@ export async function syncFinalScoresToEdectra({ gameId, pin, leaderboard, total
         }
 
         markSyncCompleted(syncKey);
-        console.info("[LiveQuiz][Edectra] sync success", { classId, gameId, count: rows.length });
-        return { success: true, count: rows.length };
+        const result = await response.json().catch(() => ({}));
+        console.info("[LiveQuiz][Edectra] sync success", { classId, gameId, count: results.length, result });
+        return { success: true, count: results.length, result };
     } catch (error) {
-        console.error("[LiveQuiz][Edectra] sync failure", {
+        console.warn("[LiveQuiz][Edectra] sync failure", {
             message: error?.message || String(error),
             classId,
             gameId

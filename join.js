@@ -353,9 +353,10 @@ joinBtn.addEventListener("click", async () => {
 
         if (edectraContext.integrationMode === "edectra-connected") {
             participantData.source = "edectra";
-            participantData.edectraClassId = edectraContext.classId || "";
-            participantData.edectraStudentId = edectraContext.studentId || "";
-            participantData.edectraUserId = edectraContext.userId || "";
+            participantData.edectraClassId = edectraContext.classroomId || edectraContext.classId || "";
+            participantData.edectraStudentId = edectraContext.studentId || edectraContext.student_id || edectraContext.profileId || edectraContext.profile_id || "";
+            participantData.edectraProfileId = edectraContext.profileId || edectraContext.profile_id || edectraContext.studentId || edectraContext.student_id || "";
+            participantData.edectraUserId = edectraContext.userId || edectraContext.user_id || "";
             participantData.edectraMembershipValidated = membership.validated === true && membership.allowed === true;
             participantData.edectraMembershipValidationReason = membership.reason || "";
         }
