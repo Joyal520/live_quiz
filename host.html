@@ -23,6 +23,11 @@
       });
     </script>
     <style>
+      /* ── Global box-sizing ── */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
       /* ── Bottom-clip fix: let the page scroll ── */
       html,
       body {
@@ -30,6 +35,7 @@
         height: auto !important;
         overflow-x: hidden !important;
         overflow-y: auto !important;
+        max-width: 100%;
       }
 
       /* PREMIUM HOST DASHBOARD REDESIGN */
@@ -1179,18 +1185,52 @@
         clip: rect(0 0 0 0);
       }
 
+      /* Ensure views are strictly displayed only when active */
+      body[data-host-view="setup"] #view-setup {
+        display: flex !important;
+      }
+      body:not([data-host-view="setup"]) #view-setup {
+        display: none !important;
+      }
+
+      body[data-host-view="lobby"] #view-lobby {
+        display: flex !important;
+      }
+      body:not([data-host-view="lobby"]) #view-lobby {
+        display: none !important;
+      }
+
+      body[data-host-view="question"] #view-question {
+        display: flex !important;
+      }
+      body:not([data-host-view="question"]) #view-question {
+        display: none !important;
+      }
+
+      body[data-host-view="podium"] #view-podium {
+        display: flex !important;
+      }
+      body:not([data-host-view="podium"]) #view-podium {
+        display: none !important;
+      }
+
+      /* CTA: hidden by default, shown only when quiz selected or create active */
       #view-setup .cta-wrapper,
       #view-setup .cta-wrapper.setup-cta-hidden,
-      body:not(.setup-quiz-selected):not(.setup-create-active) #view-setup .cta-wrapper {
-        display: flex !important;
-        position: static !important;
-        width: 100% !important;
-        margin: 0 !important;
-        transform: none !important;
+      #view-setup .cta-wrapper.setup-pin-cta {
+        display: none !important;
+        position: static;
+        width: 100%;
+        margin: 0;
+        transform: none;
+      }
+
+      body.setup-quiz-selected #view-setup .cta-wrapper,
+      body.setup-create-active #view-setup .cta-wrapper {
+        display: grid !important;
       }
 
       .setup-pin-cta {
-        display: grid !important;
         grid-template-columns: 74px minmax(0, 1fr) auto;
         align-items: center;
         gap: 22px;
@@ -1679,9 +1719,15 @@
         }
       }
 
-      @media (max-width: 760px) {
+      @media (max-width: 768px) {
         #view-setup.dashboard-layout {
-          padding: 18px 14px 24px !important;
+          padding: 16px !important;
+          max-width: 100vw;
+        }
+
+        .dashboard-top-nav.setup-top-nav {
+          grid-template-columns: 1fr;
+          gap: 12px;
         }
 
         .host-nav-left {
@@ -1690,69 +1736,237 @@
 
         .setup-title-lockup {
           align-items: flex-start;
-          gap: 14px;
+          gap: 12px;
         }
 
         .setup-title-icon {
-          width: 66px;
-          height: 66px;
+          width: 54px;
+          height: 54px;
         }
 
         .setup-title-icon .glass-clipboard {
-          width: 46px !important;
-          height: 56px !important;
+          width: 38px !important;
+          height: 46px !important;
         }
 
         .setup-title-icon .glass-trophy {
-          width: 24px !important;
-          height: 24px !important;
+          width: 20px !important;
+          height: 20px !important;
         }
 
         .setup-title-text h1 {
-          font-size: clamp(1.85rem, 9vw, 2.35rem);
+          font-size: clamp(1.6rem, 7vw, 2rem);
           white-space: normal;
         }
 
         .setup-title-text p {
-          max-width: 250px;
-          font-size: 0.92rem;
+          max-width: 280px;
+          font-size: 0.88rem;
           line-height: 1.35;
         }
 
+        .setup-language-wrap {
+          display: none;
+        }
+
+        /* Hide left sidebar on mobile */
+        #view-setup .dashboard-left-panel {
+          display: none !important;
+        }
+
+        .dashboard-content-wrapper.setup-shell {
+          grid-template-columns: 1fr;
+          gap: 16px !important;
+        }
+
+        .dashboard-main-panel.setup-main-panel {
+          padding: 16px !important;
+          border-radius: 18px !important;
+        }
+
+        .main-card.setup-main-card {
+          gap: 16px !important;
+        }
+
+        .setup-section-title {
+          font-size: 1.2rem;
+          margin: 0 0 12px;
+        }
+
+        .setup-section-title::before,
+        .setup-section-title::after {
+          width: 40px;
+        }
+
+        /* Quiz cards: single column, constrained width */
         #view-setup .info-blocks,
         .quiz-option-grid,
         .mode-grid {
           grid-template-columns: 1fr;
-        }
-
-        #view-setup .dashboard-left-panel {
-          display: block !important;
-        }
-
-        #view-setup .info-block {
-          min-height: auto !important;
-        }
-
-        .dashboard-main-panel.setup-main-panel {
-          padding: 18px 14px 20px !important;
+          gap: 14px;
         }
 
         .setup-choice-card {
           min-height: auto;
+          padding: 20px 18px 18px;
+          width: 100%;
+          max-width: 420px;
+          margin: 0 auto;
+        }
+
+        .setup-illustration {
+          height: 90px;
+          margin-bottom: 12px;
+        }
+
+        .setup-illustration .setup-svg {
+          max-height: 80px;
+        }
+
+        .setup-choice-card h3 {
+          font-size: 1.15rem;
+        }
+
+        .setup-choice-card p {
+          min-height: auto;
+          margin-bottom: 14px;
+          font-size: 0.9rem;
+        }
+
+        .setup-card-action {
+          min-height: 48px;
+          font-size: 0.92rem;
+          width: 100%;
+        }
+
+        #view-setup .info-block {
+          min-height: auto !important;
+          padding: 16px !important;
+        }
+
+        .icon-wrap {
+          width: 48px !important;
+          height: 48px !important;
+        }
+
+        .icon-wrap svg {
+          width: 22px !important;
+          height: 22px !important;
+        }
+
+        /* Mode cards: single column, constrained width */
+        .mode-grid {
+          padding: 12px;
+          border-radius: 18px;
         }
 
         .mode-card {
           grid-template-columns: 1fr;
           text-align: center;
+          padding: 16px;
+          max-width: 420px;
+          margin: 0 auto;
+          width: 100%;
         }
 
+        .mode-illustration {
+          display: flex;
+          justify-content: center;
+        }
+
+        .mode-illustration .setup-svg {
+          width: 80px;
+          height: 70px;
+        }
+
+        .mode-copy h3 {
+          font-size: 1.15rem;
+        }
+
+        .mode-copy p {
+          font-size: 0.88rem;
+          margin-bottom: 10px;
+        }
+
+        .mode-action {
+          min-height: 44px;
+          padding: 0 20px;
+          width: 100%;
+        }
+
+        /* CTA section on mobile */
         .setup-pin-cta {
           grid-template-columns: 1fr;
-          justify-items: start;
+          justify-items: center;
+          text-align: center;
+          padding: 16px;
+          gap: 14px;
+        }
+
+        .pin-cta-icon {
+          width: 48px;
+          height: 48px;
+        }
+
+        .pin-cta-icon svg,
+        .pin-cta-icon i {
+          width: 22px !important;
+          height: 22px !important;
+        }
+
+        .pin-cta-copy h3 {
+          font-size: 1.1rem;
+        }
+
+        .pin-cta-copy p {
+          font-size: 0.88rem;
         }
 
         .btn-cta.generate-pin-action {
           width: 100% !important;
+          max-width: 420px;
+          height: 52px !important;
+          min-width: auto;
+          padding: 0 20px !important;
+          font-size: 0.95rem !important;
+        }
+
+        /* General button fixes */
+        .btn-cta {
+          width: 100% !important;
+          max-width: 420px;
+          height: 58px !important;
+          padding: 0 20px 0 20px !important;
+          margin: 0 auto;
+        }
+
+        .btn-cta .btn-icon-right {
+          width: 38px;
+          height: 38px;
+          right: 10px;
+        }
+
+        /* Selected quiz badge */
+        .selected-quiz-badge {
+          max-width: 420px;
+          margin: 12px auto 0 !important;
+        }
+
+        /* Sticky CTA on mobile when quiz is selected */
+        body.setup-quiz-selected #view-setup .cta-wrapper {
+          position: sticky;
+          bottom: 12px;
+          z-index: 40;
+          max-width: 100%;
+        }
+
+        /* Lobby view mobile fixes */
+        .lobby-layout {
+          flex-direction: column !important;
+        }
+
+        .player-status-card .status-actions {
+          grid-template-columns: 1fr 1fr !important;
         }
       }
 

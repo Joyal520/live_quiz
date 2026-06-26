@@ -140,13 +140,44 @@ async function useQuiz(id) {
       updatedAt: TS()
     }, { merge: true });
 
-    localStorage.setItem("edtechra_selected_quiz", JSON.stringify({
-      id: selected.id,
-      title: selected.title,
-      source: "all-quizzes",
-      questionCount: selected.questions.length
-    }));
-    window.location.href = `host.html?quizId=${encodeURIComponent(selected.id)}`;
+    console.info("[LiveQuiz][AllQuizzes] Selected quiz:", selected.id, selected.title);
+
+    // Persist selection when storage is available (may be blocked by iframe sandbox)
+    try {
+      localStorage.setItem("edtechra_selected_quiz", JSON.stringify({
+        id: selected.id,
+        title: selected.title,
+        source: "all-quizzes",
+        questionCount: selected.questions.length
+      }));
+      console.info("[LiveQuiz][AllQuizzes] localStorage: available, selection stored");
+    } catch {
+      console.warn("[LiveQuiz][AllQuizzes] localStorage: unavailable (sandboxed iframe), skipping storage");
+    }
+
+    // URL query param is the primary transport — host.js reads quizId from URL first
+    const targetUrl = `host.html?quizId=${encodeURIComponent(selected.id)}`;
+    console.info("[LiveQuiz][AllQuizzes] Target host URL:", targetUrl);
+
+    // Notify parent frame (Edtechra classroom) about the quiz selection
+    if (window.parent !== window) {
+      try {
+        window.parent.postMessage({
+          type: "livequiz:select",
+          quizId: selected.id,
+          title: selected.title,
+          source: "all-quizzes",
+          questionCount: selected.questions.length,
+          navigateTo: targetUrl
+        }, "*");
+        console.info("[LiveQuiz][AllQuizzes] postMessage sent to parent frame");
+      } catch (err) {
+        console.warn("[LiveQuiz][AllQuizzes] postMessage to parent failed:", err);
+      }
+    }
+
+    // Navigate within the current iframe (safe even when sandbox blocks top navigation)
+    window.location.href = targetUrl;
   } catch (error) {
     console.error("[LiveQuiz] Ready-made quiz select failed", error);
     setStatus("Could not select this quiz. Check Firebase and try again.", "error");

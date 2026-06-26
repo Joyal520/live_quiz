@@ -345,6 +345,112 @@ body::before {
   }
 }
 
+/* Ultra-narrow mobile (319px and similar) — prevent horizontal overflow */
+@media (max-width: 340px) {
+  .page-shell {
+    width: calc(100vw - 16px);
+    padding-top: 14px;
+  }
+
+  .page-header {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .glass-panel {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .quiz-card {
+    padding: 14px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topic-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+
+  .quiz-card h3 {
+    font-size: 1.05rem;
+  }
+
+  .quiz-card p {
+    font-size: 0.85rem;
+    min-height: 0;
+  }
+
+  .meta-row {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    word-break: break-word;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .form-actions .primary-pill,
+  .form-actions .ghost-pill,
+  .form-actions .danger-pill {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .back-pill,
+  .primary-pill {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+  }
+
+  .title-block h1 {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+  }
+
+  .title-block p {
+    font-size: 0.85rem;
+  }
+
+  .search-box {
+    min-width: 0;
+  }
+
+  .search-box input {
+    min-height: 44px;
+    padding: 10px 14px 10px 42px;
+    font-size: 0.88rem;
+    min-width: 0;
+  }
+
+  .toolbar {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-row {
+    gap: 6px;
+  }
+
+  .filter-chip {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+}
+
 /* Mobile performance pass for quiz library/create screens. */
 @media (max-width: 768px) {
   body::before {

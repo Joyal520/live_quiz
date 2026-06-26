@@ -175,15 +175,25 @@ async function saveQuiz(event) {
       updatedAt: TS()
     });
 
-    localStorage.setItem("edtechra_selected_quiz", JSON.stringify({
-      id: ref.id,
-      title: quizData.title,
-      source: "teacher-created",
-      questionCount: quizData.questions.length
-    }));
+    // Persist selection when storage is available (may be blocked by iframe sandbox)
+    try {
+      localStorage.setItem("edtechra_selected_quiz", JSON.stringify({
+        id: ref.id,
+        title: quizData.title,
+        source: "teacher-created",
+        questionCount: quizData.questions.length
+      }));
+      console.info("[LiveQuiz][CreateQuiz] localStorage: available, selection stored");
+    } catch {
+      console.warn("[LiveQuiz][CreateQuiz] localStorage: unavailable (sandboxed iframe), skipping storage");
+    }
+
+    const targetUrl = `host.html?quizId=${encodeURIComponent(ref.id)}`;
+    console.info("[LiveQuiz][CreateQuiz] Saved quiz:", ref.id, quizData.title, "→", targetUrl);
+
     setStatus(`Saved "${quizData.title}". Returning to preparation...`, "success");
     window.setTimeout(() => {
-      window.location.href = `host.html?quizId=${encodeURIComponent(ref.id)}`;
+      window.location.href = targetUrl;
     }, 500);
   } catch (error) {
     console.error("[LiveQuiz] Quiz save failed", error);
